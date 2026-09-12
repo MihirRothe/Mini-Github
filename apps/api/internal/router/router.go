@@ -11,6 +11,7 @@ import (
 	"forgehub/apps/api/internal/middleware"
 	authModule "forgehub/apps/api/internal/modules/auth"
 	"forgehub/apps/api/internal/modules/health"
+	"forgehub/apps/api/internal/modules/orgs"
 	"forgehub/apps/api/internal/modules/tokens"
 	"forgehub/apps/api/internal/modules/users"
 	"forgehub/apps/api/internal/redis"
@@ -47,6 +48,8 @@ func New(opts RouterOptions) *chi.Mux {
 	// Domain Services & Repositories
 	authRepo := authModule.NewRepository(opts.DB)
 	authSvc := authModule.NewService(authRepo, opts.Config)
+	orgsRepo := orgs.NewRepository(opts.DB, authRepo)
+	orgsSvc := orgs.NewService(orgsRepo, authRepo)
 
 	// Authentication Context Middleware
 	r.Use(middleware.Authenticate(authSvc, opts.Config.SessionCookieName))
@@ -58,6 +61,7 @@ func New(opts RouterOptions) *chi.Mux {
 	authHandler := authModule.NewHandler(authSvc, opts.Config)
 	userHandler := users.NewHandler(authSvc)
 	tokenHandler := tokens.NewHandler(authSvc)
+	orgsHandler := orgs.NewHandler(orgsSvc)
 	healthHandler := health.NewHandler(opts.DB, opts.Redis)
 
 	// Custom 404 & 405 error handlers
@@ -103,6 +107,34 @@ func New(opts RouterOptions) *chi.Mux {
 			tokenRouter.Post("/", tokenHandler.CreateToken)
 			tokenRouter.Get("/", tokenHandler.ListTokens)
 			tokenRouter.Delete("/{id}", tokenHandler.DeleteToken)
+		})
+
+		// Organizations & Teams (Phase 3)
+		v1.Route("/orgs", func(orgRouter chi.Router) {
+			orgRouter.With(middleware.RequireAuth).Post("/", orgsHandler.CreateOrganization)
+			orgRouter.With(middleware.RequireAuth).Get("/", orgsHandler.ListUserOrganizations)
+			orgRouter.Get("/{org}", orgsHandler.GetOrganization)
+			orgRouter.With(middleware.RequireAuth).Patch("/{org}", orgsHandler.UpdateOrganization)
+			orgRouter.With(middleware.RequireAuth).Delete("/{org}", orgsHandler.DeleteOrganization)
+
+			// Organization Members
+			orgRouter.Get("/{org}/members", orgsHandler.ListMembers)
+			orgRouter.With(middleware.RequireAuth).Post("/{org}/members", orgsHandler.AddMember)
+			orgRouter.With(middleware.RequireAuth).Patch("/{org}/members/{username}", orgsHandler.UpdateMemberRole)
+			orgRouter.With(middleware.RequireAuth).Delete("/{org}/members/{username}", orgsHandler.RemoveMember)
+
+			// Organization Teams
+			orgRouter.Get("/{org}/teams", orgsHandler.ListTeams)
+			orgRouter.With(middleware.RequireAuth).Post("/{org}/teams", orgsHandler.CreateTeam)
+			orgRouter.Get("/{org}/teams/{team}", orgsHandler.GetTeam)
+			orgRouter.With(middleware.RequireAuth).Patch("/{org}/teams/{team}", orgsHandler.UpdateTeam)
+			orgRouter.With(middleware.RequireAuth).Delete("/{org}/teams/{team}", orgsHandler.DeleteTeam)
+
+			// Team Members
+			orgRouter.Get("/{org}/teams/{team}/members", orgsHandler.ListTeamMembers)
+			orgRouter.With(middleware.RequireAuth).Post("/{org}/teams/{team}/members", orgsHandler.AddTeamMember)
+			orgRouter.With(middleware.RequireAuth).Patch("/{org}/teams/{team}/members/{username}", orgsHandler.UpdateTeamMemberRole)
+			orgRouter.With(middleware.RequireAuth).Delete("/{org}/teams/{team}/members/{username}", orgsHandler.RemoveTeamMember)
 		})
 	})
 

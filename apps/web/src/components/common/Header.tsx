@@ -10,7 +10,9 @@ import {
   Settings,
   Key,
   LogOut,
-  ChevronDown
+  ChevronDown,
+  Building2,
+  Plus
 } from 'lucide-react';
 import { TelemetryResponse } from '../../types';
 
@@ -117,6 +119,18 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCommandPalette }) => {
           </span>
         </Link>
 
+        {/* New Organization Quick Action */}
+        {isAuthenticated && (
+          <Link
+            to="/orgs/new"
+            className="hidden sm:flex items-center space-x-1 px-2.5 py-1 rounded-lg bg-forge-card border border-forge-border hover:border-forge-subtle text-xs text-forge-text hover:text-white transition-colors"
+            title="Create Organization"
+          >
+            <Plus className="w-3.5 h-3.5 text-forge-accent" />
+            <span>New Org</span>
+          </Link>
+        )}
+
         {/* Notifications */}
         <button
           className="p-1.5 text-forge-muted hover:text-forge-text hover:bg-forge-card rounded-lg transition-colors relative"
@@ -162,6 +176,14 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCommandPalette }) => {
                   >
                     <UserIcon className="w-3.5 h-3.5 text-forge-muted" />
                     <span>Your Profile</span>
+                  </Link>
+                  <Link
+                    to="/orgs/new"
+                    onClick={() => setIsDropdownOpen(false)}
+                    className="flex items-center space-x-2 px-4 py-2 hover:bg-forge-card text-forge-text transition-colors"
+                  >
+                    <Building2 className="w-3.5 h-3.5 text-forge-accent" />
+                    <span>New Organization</span>
                   </Link>
                   <Link
                     to="/settings/profile"

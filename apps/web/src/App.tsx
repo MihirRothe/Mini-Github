@@ -11,6 +11,9 @@ import { RegisterPage } from './pages/auth/RegisterPage';
 import { UserProfilePage } from './pages/user/UserProfilePage';
 import { ProfileSettingsPage } from './pages/settings/ProfileSettingsPage';
 import { TokensPage } from './pages/settings/TokensPage';
+import { NewOrgPage } from './pages/org/NewOrgPage';
+import { OrgOverviewPage } from './pages/org/OrgOverviewPage';
+import { TeamDetailPage } from './pages/org/TeamDetailPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 
 const queryClient = new QueryClient({
@@ -37,6 +40,12 @@ export const App: React.FC = () => {
               <Route path="/register" element={<RegisterPage />} />
               <Route path="/settings/profile" element={<ProfileSettingsPage />} />
               <Route path="/settings/tokens" element={<TokensPage />} />
+              
+              {/* Organization & Team Routes (Phase 3) */}
+              <Route path="/orgs/new" element={<NewOrgPage />} />
+              <Route path="/orgs/:org" element={<OrgOverviewPage />} />
+              <Route path="/orgs/:org/teams/:team" element={<TeamDetailPage />} />
+
               <Route path="/:username" element={<UserProfilePage />} />
               <Route path="*" element={<NotFoundPage />} />
             </Route>

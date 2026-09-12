@@ -83,3 +83,61 @@ export interface Repository {
   forks_count: number;
   updated_at: string;
 }
+
+export type OrgRole = 'owner' | 'admin' | 'member' | 'billing_manager';
+export type TeamRole = 'maintainer' | 'member';
+export type RepoPermission = 'read' | 'triage' | 'write' | 'maintain' | 'admin';
+
+export interface Organization {
+  id: string;
+  name: string;
+  slug: string;
+  description: string;
+  avatar_url: string;
+  website?: string;
+  location?: string;
+  created_at: string;
+  updated_at: string;
+  member_count?: number;
+  team_count?: number;
+  repo_count?: number;
+  role?: OrgRole;
+}
+
+export interface OrgMember {
+  id: string;
+  organization_id: string;
+  user_id: string;
+  username: string;
+  display_name: string;
+  avatar_url: string;
+  email: string;
+  role: OrgRole;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Team {
+  id: string;
+  organization_id: string;
+  name: string;
+  slug: string;
+  description: string;
+  privacy: 'visible' | 'secret';
+  member_count: number;
+  created_at: string;
+  updated_at: string;
+  current_user_role?: TeamRole;
+}
+
+export interface TeamMember {
+  id: string;
+  team_id: string;
+  user_id: string;
+  username: string;
+  display_name: string;
+  avatar_url: string;
+  role: TeamRole;
+  created_at: string;
+}
+
