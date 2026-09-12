@@ -1,0 +1,18 @@
+package auth
+
+import (
+	"context"
+)
+
+type userContextKey struct{}
+
+func ContextWithUser(ctx context.Context, u *User) context.Context {
+	return context.WithValue(ctx, userContextKey{}, u)
+}
+
+func GetUserFromContext(ctx context.Context) *User {
+	if u, ok := ctx.Value(userContextKey{}).(*User); ok {
+		return u
+	}
+	return nil
+}

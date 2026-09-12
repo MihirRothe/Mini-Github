@@ -41,7 +41,33 @@ export interface User {
   display_name: string;
   avatar_url: string;
   bio?: string;
+  location?: string;
+  website?: string;
   is_admin: boolean;
+  is_suspended: boolean;
+  created_at: string;
+  updated_at?: string;
+}
+
+export interface PublicUser {
+  id: string;
+  username: string;
+  display_name: string;
+  avatar_url: string;
+  bio?: string;
+  location?: string;
+  website?: string;
+  created_at: string;
+}
+
+export interface APIToken {
+  id: string;
+  user_id: string;
+  name: string;
+  token_prefix: string;
+  scopes: string[];
+  last_used_at?: string;
+  expires_at?: string;
   created_at: string;
 }
 

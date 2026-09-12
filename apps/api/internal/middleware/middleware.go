@@ -4,17 +4,19 @@ import (
 	"fmt"
 	"net/http"
 	"runtime/debug"
+	"strings"
 	"time"
 
 	"forgehub/apps/api/internal/errors"
 	"forgehub/apps/api/internal/logger"
+	authModule "forgehub/apps/api/internal/modules/auth"
 
 	"github.com/google/uuid"
 )
 
 type responseWriterWrapper struct {
 	http.ResponseWriter
-	statusCode int
+	statusCode   int
 	bytesWritten int
 }
 
@@ -104,7 +106,75 @@ func SecurityHeaders(next http.Handler) http.Handler {
 		w.Header().Set("X-XSS-Protection", "1; mode=block")
 		w.Header().Set("Referrer-Policy", "strict-origin-when-cross-origin")
 		w.Header().Set("Permissions-Policy", "camera=(), microphone=(), geolocation=()")
-		
+
+		next.ServeHTTP(w, r)
+	})
+}
+
+// Authenticate extracts session cookie or Bearer token and associates user with context
+func Authenticate(authSvc *authModule.Service, cookieName string) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			ctx := r.Context()
+
+			// 1. Check Session Cookie
+			if cookie, err := r.Cookie(cookieName); err == nil && cookie.Value != "" {
+				if user, err := authSvc.ValidateSession(ctx, cookie.Value); err == nil && user != nil {
+					ctx = authModule.ContextWithUser(ctx, user)
+					next.ServeHTTP(w, r.WithContext(ctx))
+					return
+				}
+			}
+
+			// 2. Check Authorization: Bearer <token> (PAT)
+			authHeader := r.Header.Get("Authorization")
+			if strings.HasPrefix(authHeader, "Bearer ") {
+				rawToken := strings.TrimPrefix(authHeader, "Bearer ")
+				if strings.HasPrefix(rawToken, "fh_pat_") {
+					if user, _, err := authSvc.ValidateAPIToken(ctx, rawToken); err == nil && user != nil {
+						ctx = authModule.ContextWithUser(ctx, user)
+						next.ServeHTTP(w, r.WithContext(ctx))
+						return
+					}
+				} else {
+					// Also support raw session token via Bearer
+					if user, err := authSvc.ValidateSession(ctx, rawToken); err == nil && user != nil {
+						ctx = authModule.ContextWithUser(ctx, user)
+						next.ServeHTTP(w, r.WithContext(ctx))
+						return
+					}
+				}
+			}
+
+			next.ServeHTTP(w, r.WithContext(ctx))
+		})
+	}
+}
+
+// RequireAuth blocks unauthenticated requests with 401 Unauthorized
+func RequireAuth(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		user := authModule.GetUserFromContext(r.Context())
+		if user == nil {
+			errors.RespondWithError(w, errors.Unauthorized("Authentication is required to access this resource"))
+			return
+		}
+		next.ServeHTTP(w, r)
+	})
+}
+
+// RequireAdmin blocks non-administrator accounts with 403 Forbidden
+func RequireAdmin(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		user := authModule.GetUserFromContext(r.Context())
+		if user == nil {
+			errors.RespondWithError(w, errors.Unauthorized("Authentication is required to access this resource"))
+			return
+		}
+		if !user.IsAdmin {
+			errors.RespondWithError(w, errors.Forbidden("Administrative privileges are required for this action"))
+			return
+		}
 		next.ServeHTTP(w, r)
 	})
 }

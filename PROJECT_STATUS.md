@@ -6,9 +6,9 @@ ForgeHub is an independent, production-grade, self-hostable developer collaborat
 
 ## Current Milestone
 
-* **Current Phase**: **PHASE 1 — Foundation** (Completed & Verified)
-* **Next Phase**: **PHASE 2 — Authentication & User Management**
-* **Target**: Operational monorepo, Go Chi backend, React/Vite/TS frontend, PostgreSQL migrations, Redis integration, health telemetry, Docker Compose, test suite.
+* **Current Phase**: **PHASE 3 — Organizations, Teams & RBAC** (Up Next)
+* **Completed Milestones**: Phase 1 (Foundation), Phase 2 (Authentication & User Management)
+* **Target**: Organizations, Teams, Membership roles, Repository RBAC permissions matrix.
 
 ---
 
@@ -17,7 +17,7 @@ ForgeHub is an independent, production-grade, self-hostable developer collaborat
 | Phase | Description | Status | Verification |
 |---|---|---|---|
 | **Phase 1** | **Foundation** (Monorepo, API, Web, Postgres, Redis, Health, Docker, Tests) | 🟢 **Completed** | Backend & frontend running, tests pass, healthcheck 200 OK |
-| **Phase 2** | **Authentication & User Management** (Argon2id, Sessions, Cookies, Profiles, Auth Middleware) | ⚪ Planned | Registration, Login, Session tests |
+| **Phase 2** | **Authentication & User Management** (Argon2id, Sessions, Cookies, Profiles, Auth Middleware) | 🟢 **Completed** | Argon2id tests, Registration, Login, Session cookies, Tokens |
 | **Phase 3** | **Organizations, Teams & RBAC** (Orgs, Teams, Granular Repository Permissions) | ⚪ Planned | Permission matrix unit & integration tests |
 | **Phase 4** | **Git Storage & Smart HTTP** (Bare repos, Git HTTP clone/push, branch/tree browsing) | ⚪ Planned | Git CLI clone, push, branch verification |
 | **Phase 5** | **Issues & Collaboration** (Issue tracker, comments, labels, milestones, assignments) | ⚪ Planned | End-to-end issue workflow tests |
