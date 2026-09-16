@@ -27,6 +27,7 @@ import { ActionsListPage } from './pages/actions/ActionsListPage';
 import { PipelineRunDetailPage } from './pages/actions/PipelineRunDetailPage';
 import { WebhooksListPage } from './pages/settings/WebhooksListPage';
 import { WebhookEditPage } from './pages/settings/WebhookEditPage';
+import { SearchPage } from './pages/SearchPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 
 const queryClient = new QueryClient({
@@ -48,6 +49,7 @@ export const App: React.FC = () => {
               <Route path="/" element={<Navigate to="/dashboard" replace />} />
               <Route path="/dashboard" element={<DashboardPage />} />
               <Route path="/explore" element={<ExplorePage />} />
+              <Route path="/search" element={<SearchPage />} />
               <Route path="/status" element={<SystemStatusPage />} />
               <Route path="/login" element={<LoginPage />} />
               <Route path="/register" element={<RegisterPage />} />

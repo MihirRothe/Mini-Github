@@ -408,5 +408,102 @@ export interface WebhookDelivery {
   delivered_at: string;
 }
 
+// Global Search (Phase 9)
+export type SearchType = 'repositories' | 'issues' | 'pulls' | 'code' | 'users';
 
+export interface RepoSearchResult {
+  id: string;
+  name: string;
+  slug: string;
+  description: string;
+  owner_name: string;
+  owner_type: 'user' | 'org';
+  visibility: string;
+  default_branch: string;
+  star_count: number;
+  fork_count: number;
+  updated_at: string;
+}
 
+export interface IssueSearchResult {
+  id: string;
+  number: number;
+  title: string;
+  body_snippet: string;
+  state: string;
+  repo_owner: string;
+  repo_slug: string;
+  author?: PublicUser;
+  comments_count: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PRSearchResult {
+  id: string;
+  number: number;
+  title: string;
+  body_snippet: string;
+  state: string;
+  is_draft: boolean;
+  source_branch: string;
+  target_branch: string;
+  repo_owner: string;
+  repo_slug: string;
+  author?: PublicUser;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface GrepMatch {
+  path: string;
+  line_number: number;
+  line_text: string;
+}
+
+export interface CodeSearchResult {
+  repo_owner: string;
+  repo_slug: string;
+  file_path: string;
+  matches: GrepMatch[];
+}
+
+export interface UserSearchResult {
+  id: string;
+  username: string;
+  display_name: string;
+  bio: string;
+  avatar_url: string;
+  is_org: boolean;
+}
+
+export interface SearchCounts {
+  repositories: number;
+  issues: number;
+  pulls: number;
+  code: number;
+  users: number;
+}
+
+export interface SearchResultsResponse {
+  query: string;
+  type: SearchType;
+  total_count: number;
+  page: number;
+  per_page: number;
+  counts: SearchCounts;
+  repositories?: RepoSearchResult[];
+  issues?: IssueSearchResult[];
+  pulls?: PRSearchResult[];
+  code?: CodeSearchResult[];
+  users?: UserSearchResult[];
+}
+
+export interface QuickSearchResponse {
+  query: string;
+  repositories: RepoSearchResult[];
+  issues: IssueSearchResult[];
+  pulls: PRSearchResult[];
+  code: CodeSearchResult[];
+  users: UserSearchResult[];
+}

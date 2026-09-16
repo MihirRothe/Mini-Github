@@ -17,6 +17,7 @@ import (
 	"forgehub/apps/api/internal/modules/orgs"
 	"forgehub/apps/api/internal/modules/pulls"
 	"forgehub/apps/api/internal/modules/repos"
+	"forgehub/apps/api/internal/modules/search"
 	"forgehub/apps/api/internal/modules/tokens"
 	"forgehub/apps/api/internal/modules/users"
 	"forgehub/apps/api/internal/modules/webhooks"
@@ -88,6 +89,11 @@ func New(opts RouterOptions) *chi.Mux {
 	webhooksSvc := webhooks.NewService(webhooksStore, webhooksDispatcher, reposSvc, authRepo)
 	webhooksHandler := webhooks.NewHandler(webhooksSvc)
 
+	// Global Search & Code Navigation (Phase 9)
+	searchStore := search.NewSearchStore(opts.DB)
+	searchSvc := search.NewService(searchStore, gitReader)
+	searchHandler := search.NewHandler(searchSvc)
+
 	// Authentication Context Middleware
 	r.Use(middleware.Authenticate(authSvc, opts.Config.SessionCookieName))
 
@@ -130,6 +136,10 @@ func New(opts RouterOptions) *chi.Mux {
 			w.WriteHeader(http.StatusOK)
 			_, _ = w.Write([]byte(`{"message":"pong"}`))
 		})
+
+		// Global Search (Phase 9)
+		v1.Get("/search", searchHandler.Search)
+		v1.Get("/search/quick", searchHandler.QuickSearch)
 
 		// Auth Endpoints
 		v1.Route("/auth", func(authRouter chi.Router) {

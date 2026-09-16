@@ -89,6 +89,13 @@ type Reader interface {
 	GetReadme(diskPath, ref string) (*BlobInfo, error)
 	DiffBranches(diskPath, baseRef, headRef string) (*DiffResult, error)
 	GetCommitsBetween(diskPath, baseRef, headRef string) ([]CommitInfo, error)
+	Grep(diskPath, ref, query string, maxResults int) ([]GrepMatch, error)
+}
+
+type GrepMatch struct {
+	Path       string `json:"path"`
+	LineNumber int    `json:"line_number"`
+	LineText   string `json:"line_text"`
 }
 
 type localReader struct{}
@@ -464,4 +471,63 @@ func (r *localReader) GetCommitsBetween(diskPath, baseRef, headRef string) ([]Co
 		}
 	}
 	return commits, nil
+}
+
+func (r *localReader) Grep(diskPath, ref, query string, maxResults int) ([]GrepMatch, error) {
+	if query == "" {
+		return []GrepMatch{}, nil
+	}
+	if ref == "" {
+		ref = "HEAD"
+	}
+	if maxResults <= 0 || maxResults > 200 {
+		maxResults = 50
+	}
+
+	// git -C <diskPath> grep -n -I -i -F -m <maxResults> -e <query> <ref>
+	args := []string{
+		"-C", diskPath,
+		"grep",
+		"-n",
+		"-I",
+		"-i",
+		"-F",
+		"-m", strconv.Itoa(maxResults),
+		"-e", query,
+		ref,
+	}
+
+	cmd := exec.Command("git", args...)
+	out, err := cmd.Output()
+	if err != nil {
+		// Exit status 1 means no matches found; other errors might be empty repo or missing ref
+		return []GrepMatch{}, nil
+	}
+
+	lines := strings.Split(strings.TrimSpace(string(out)), "\n")
+	var matches []GrepMatch
+	for _, line := range lines {
+		line = strings.TrimSpace(line)
+		if line == "" {
+			continue
+		}
+		// Format: <ref>:<filePath>:<lineNum>:<content>
+		parts := strings.SplitN(line, ":", 4)
+		if len(parts) >= 4 {
+			lineNum, err := strconv.Atoi(parts[2])
+			if err != nil {
+				continue
+			}
+			matches = append(matches, GrepMatch{
+				Path:       parts[1],
+				LineNumber: lineNum,
+				LineText:   parts[3],
+			})
+		}
+		if len(matches) >= maxResults {
+			break
+		}
+	}
+
+	return matches, nil
 }
