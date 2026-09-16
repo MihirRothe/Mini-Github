@@ -12,6 +12,7 @@ import (
 	"forgehub/apps/api/internal/middleware"
 	authModule "forgehub/apps/api/internal/modules/auth"
 	"forgehub/apps/api/internal/modules/health"
+	"forgehub/apps/api/internal/modules/issues"
 	"forgehub/apps/api/internal/modules/orgs"
 	"forgehub/apps/api/internal/modules/repos"
 	"forgehub/apps/api/internal/modules/tokens"
@@ -61,6 +62,11 @@ func New(opts RouterOptions) *chi.Mux {
 	gitReader := git.NewReader()
 	repoStore := repos.NewRepositoryStore(opts.DB)
 	reposSvc := repos.NewService(repoStore, gitStorage, gitReader, authRepo, orgsRepo, opts.Config)
+
+	// Issues & Collaboration (Phase 5)
+	issuesStore := issues.NewRepositoryStore(opts.DB, authRepo)
+	issuesSvc := issues.NewService(issuesStore, reposSvc, authRepo)
+	issuesHandler := issues.NewHandler(issuesSvc)
 
 	// Authentication Context Middleware
 	r.Use(middleware.Authenticate(authSvc, opts.Config.SessionCookieName))
@@ -171,6 +177,30 @@ func New(opts RouterOptions) *chi.Mux {
 			repoRouter.Get("/{owner}/{repo}/tree/{ref}/*", reposHandler.GetTree)
 			repoRouter.Get("/{owner}/{repo}/blob/{ref}/*", reposHandler.GetBlob)
 			repoRouter.Get("/{owner}/{repo}/readme", reposHandler.GetReadme)
+
+			// Issues & Collaboration (Phase 5)
+			repoRouter.Get("/{owner}/{repo}/issues", issuesHandler.ListIssues)
+			repoRouter.With(middleware.RequireAuth).Post("/{owner}/{repo}/issues", issuesHandler.CreateIssue)
+			repoRouter.Get("/{owner}/{repo}/issues/{number}", issuesHandler.GetIssue)
+			repoRouter.With(middleware.RequireAuth).Patch("/{owner}/{repo}/issues/{number}", issuesHandler.UpdateIssue)
+			repoRouter.With(middleware.RequireAuth).Delete("/{owner}/{repo}/issues/{number}", issuesHandler.DeleteIssue)
+
+			// Issue Comments
+			repoRouter.With(middleware.RequireAuth).Post("/{owner}/{repo}/issues/{number}/comments", issuesHandler.CreateComment)
+			repoRouter.With(middleware.RequireAuth).Patch("/{owner}/{repo}/issues/{number}/comments/{comment_id}", issuesHandler.UpdateComment)
+			repoRouter.With(middleware.RequireAuth).Delete("/{owner}/{repo}/issues/{number}/comments/{comment_id}", issuesHandler.DeleteComment)
+
+			// Issue Labels
+			repoRouter.Get("/{owner}/{repo}/labels", issuesHandler.ListLabels)
+			repoRouter.With(middleware.RequireAuth).Post("/{owner}/{repo}/labels", issuesHandler.CreateLabel)
+			repoRouter.With(middleware.RequireAuth).Patch("/{owner}/{repo}/labels/{label_id}", issuesHandler.UpdateLabel)
+			repoRouter.With(middleware.RequireAuth).Delete("/{owner}/{repo}/labels/{label_id}", issuesHandler.DeleteLabel)
+
+			// Milestones
+			repoRouter.Get("/{owner}/{repo}/milestones", issuesHandler.ListMilestones)
+			repoRouter.With(middleware.RequireAuth).Post("/{owner}/{repo}/milestones", issuesHandler.CreateMilestone)
+			repoRouter.With(middleware.RequireAuth).Patch("/{owner}/{repo}/milestones/{milestone_id}", issuesHandler.UpdateMilestone)
+			repoRouter.With(middleware.RequireAuth).Delete("/{owner}/{repo}/milestones/{milestone_id}", issuesHandler.DeleteMilestone)
 		})
 	})
 

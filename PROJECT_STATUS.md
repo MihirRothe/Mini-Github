@@ -6,9 +6,9 @@ ForgeHub is an independent, production-grade, self-hostable developer collaborat
 
 ## Current Milestone
 
-* **Current Phase**: **PHASE 5 — Issues & Collaboration** (Up Next)
-* **Completed Milestones**: Phase 1 (Foundation), Phase 2 (Authentication & User Management), Phase 3 (Organizations, Teams & RBAC), Phase 4 (Git Storage & Smart HTTP Engine)
-* **Target**: Issues tracker, comments, labels, milestones, assignments, and markdown preview.
+* **Current Phase**: **PHASE 6 — Pull Requests & Code Review** (Up Next)
+* **Completed Milestones**: Phase 1 (Foundation), Phase 2 (Authentication & User Management), Phase 3 (Organizations, Teams & RBAC), Phase 4 (Git Storage & Smart HTTP Engine), Phase 5 (Issues & Collaboration)
+* **Target**: Branch comparison & diff viewer, PR creation & review lifecycle, approvals, comments, and atomic 3-way merge engine.
 
 ---
 
@@ -20,7 +20,7 @@ ForgeHub is an independent, production-grade, self-hostable developer collaborat
 | **Phase 2** | **Authentication & User Management** (Argon2id, Sessions, Cookies, Profiles, Auth Middleware) | 🟢 **Completed** | Argon2id tests, Registration, Login, Session cookies, Tokens |
 | **Phase 3** | **Organizations, Teams & RBAC** (Orgs, Teams, Granular Repository Permissions) | 🟢 **Completed** | RBAC permission matrix tests, Org/Team CRUD, live API workflow |
 | **Phase 4** | **Git Storage & Smart HTTP** (Bare repos, Git HTTP clone/push, branch/tree browsing) | 🟢 **Completed** | Git CLI clone/push over HTTP, Smart HTTP auth/permission tests, file browser UI |
-| **Phase 5** | **Issues & Collaboration** (Issue tracker, comments, labels, milestones, assignments) | ⚪ Planned | End-to-end issue workflow tests |
+| **Phase 5** | **Issues & Collaboration** (Issue tracker, comments, labels, milestones, assignments) | 🟢 **Completed** | Issues CRUD, comments thread, state toggling, labels, milestones, filtering |
 | **Phase 6** | **Pull Requests & Code Review** (Diff viewer, PR lifecycle, reviews, approvals, merge engine) | ⚪ Planned | PR creation, diff rendering, merge commit tests |
 | **Phase 7** | **CI/CD System & Container Runners** (Workflow parser, job queue, Docker runner, log streaming) | ⚪ Planned | Containerized build execution & log stream tests |
 | **Phase 8** | **Webhooks & Automation** (Event dispatcher, signed payloads, delivery retries) | ⚪ Planned | Webhook delivery & retry tests |

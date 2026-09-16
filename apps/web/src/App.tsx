@@ -17,6 +17,9 @@ import { TeamDetailPage } from './pages/org/TeamDetailPage';
 import { NewRepoPage } from './pages/repo/NewRepoPage';
 import { RepoOverviewPage } from './pages/repo/RepoOverviewPage';
 import { BlobViewPage } from './pages/repo/BlobViewPage';
+import { IssuesListPage } from './pages/issues/IssuesListPage';
+import { NewIssuePage } from './pages/issues/NewIssuePage';
+import { IssueDetailPage } from './pages/issues/IssueDetailPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 
 const queryClient = new QueryClient({
@@ -54,6 +57,12 @@ export const App: React.FC = () => {
               <Route path="/:owner/:repo/blob/:ref/*" element={<BlobViewPage />} />
               <Route path="/:owner/:repo/tree/:ref/*" element={<RepoOverviewPage />} />
               <Route path="/:owner/:repo/tree/:ref" element={<RepoOverviewPage />} />
+
+              {/* Issues & Collaboration Routes (Phase 5) */}
+              <Route path="/:owner/:repo/issues" element={<IssuesListPage />} />
+              <Route path="/:owner/:repo/issues/new" element={<NewIssuePage />} />
+              <Route path="/:owner/:repo/issues/:number" element={<IssueDetailPage />} />
+
               <Route path="/:owner/:repo" element={<RepoOverviewPage />} />
 
               <Route path="/:username" element={<UserProfilePage />} />

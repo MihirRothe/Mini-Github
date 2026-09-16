@@ -151,3 +151,61 @@ export interface TeamMember {
   created_at: string;
 }
 
+export interface Label {
+  id: string;
+  repository_id: string;
+  name: string;
+  color: string;
+  description: string;
+  created_at: string;
+}
+
+export interface Milestone {
+  id: string;
+  repository_id: string;
+  title: string;
+  description: string;
+  state: 'open' | 'closed';
+  due_date?: string;
+  open_issues_count?: number;
+  closed_issues_count?: number;
+  created_at: string;
+  updated_at: string;
+  closed_at?: string;
+}
+
+export interface Issue {
+  id: string;
+  repository_id: string;
+  number: number;
+  title: string;
+  body: string;
+  state: 'open' | 'closed';
+  author_id?: string;
+  author?: User;
+  milestone_id?: string;
+  milestone?: Milestone;
+  labels: Label[];
+  assignees: User[];
+  comments_count: number;
+  closed_at?: string;
+  closed_by_id?: string;
+  closed_by?: User;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface IssueComment {
+  id: string;
+  issue_id: string;
+  author_id?: string;
+  author?: User;
+  body: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface IssueDetail extends Issue {
+  comments: IssueComment[];
+}
+

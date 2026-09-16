@@ -7,12 +7,7 @@ import {
   GitCommit,
   Folder,
   FileText,
-  Copy,
-  Check,
-  Globe,
-  Lock,
   Loader2,
-  Terminal,
   Clock,
   ArrowLeft
 } from 'lucide-react';
@@ -47,6 +42,8 @@ interface BlobInfo {
   size: number;
 }
 
+import { RepoHeader } from '../../components/repo/RepoHeader';
+
 export const RepoOverviewPage: React.FC = () => {
   const { owner, repo: repoSlug, ref: urlRef, '*': splatPath } = useParams<{
     owner: string;
@@ -62,11 +59,10 @@ export const RepoOverviewPage: React.FC = () => {
   const [commits, setCommits] = useState<CommitInfo[]>([]);
   const [treeEntries, setTreeEntries] = useState<TreeEntry[]>([]);
   const [readme, setReadme] = useState<BlobInfo | null>(null);
+  const [openIssuesCount, setOpenIssuesCount] = useState<number>(0);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [copiedClone, setCopiedClone] = useState(false);
-  const [showCloneDropdown, setShowCloneDropdown] = useState(false);
 
   const subPath = splatPath || '';
 
@@ -87,6 +83,16 @@ export const RepoOverviewPage: React.FC = () => {
       const defaultBranch = dataRepo.repository.default_branch || 'main';
       const currentRef = urlRef || defaultBranch;
       setActiveRef(currentRef);
+
+      // Fetch Issues Count
+      fetch(`/api/v1/repos/${owner}/${repoSlug}/issues?state=open`, { credentials: 'include' })
+        .then((res) => (res.ok ? res.json() : null))
+        .then((data) => {
+          if (data && typeof data.open_count === 'number') {
+            setOpenIssuesCount(data.open_count);
+          }
+        })
+        .catch(() => {});
 
       // 2. Fetch Branches
       const resBranches = await fetch(`/api/v1/repos/${owner}/${repoSlug}/branches`, {
@@ -148,14 +154,6 @@ export const RepoOverviewPage: React.FC = () => {
     }
   };
 
-  const handleCopyClone = () => {
-    if (!repo) return;
-    const url = repo.http_clone_url || repo.clone_url || `${window.location.origin}/${repo.owner_name}/${repo.slug}.git`;
-    navigator.clipboard.writeText(url);
-    setCopiedClone(true);
-    setTimeout(() => setCopiedClone(false), 2000);
-  };
-
   if (loading) {
     return (
       <div className="max-w-6xl mx-auto py-16 px-4 text-center">
@@ -181,83 +179,8 @@ export const RepoOverviewPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-forge-bg pb-16">
-      {/* Top Header Navigation */}
-      <div className="border-b border-forge-border bg-forge-card/40 backdrop-blur">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            {/* Breadcrumb owner / repo */}
-            <div className="flex items-center gap-2.5">
-              <BookOpen className="w-5 h-5 text-forge-accent shrink-0" />
-              <div className="flex items-center gap-1.5 text-lg sm:text-xl font-semibold text-white">
-                <Link to={`/${repo.owner_name}`} className="text-forge-muted hover:text-white">
-                  {repo.owner_name}
-                </Link>
-                <span className="text-forge-muted/60">/</span>
-                <Link to={`/${repo.owner_name}/${repo.slug}`} className="hover:underline">
-                  {repo.name}
-                </Link>
-              </div>
-
-              <span className="ml-2 px-2 py-0.5 rounded-full text-[11px] font-semibold border flex items-center gap-1 bg-forge-bg text-forge-muted border-forge-border">
-                {repo.visibility === 'public' ? (
-                  <>
-                    <Globe className="w-3 h-3 text-emerald-400" />
-                    Public
-                  </>
-                ) : (
-                  <>
-                    <Lock className="w-3 h-3 text-amber-400" />
-                    Private
-                  </>
-                )}
-              </span>
-            </div>
-
-            {/* Actions: Clone & Code */}
-            <div className="relative flex items-center gap-2">
-              <button
-                onClick={() => setShowCloneDropdown(!showCloneDropdown)}
-                className="btn-primary text-xs flex items-center gap-2"
-              >
-                <Terminal className="w-4 h-4" />
-                <span>Code / Clone</span>
-              </button>
-
-              {showCloneDropdown && (
-                <div className="absolute right-0 top-10 mt-1 w-80 sm:w-96 bg-forge-surface border border-forge-border rounded-xl shadow-2xl p-4 z-50 animate-in fade-in zoom-in-95 duration-100">
-                  <div className="text-xs font-semibold text-white mb-2">Clone with HTTP</div>
-                  <div className="flex items-center rounded-lg bg-forge-bg border border-forge-border overflow-hidden">
-                    <input
-                      type="text"
-                      readOnly
-                      value={cloneURL}
-                      className="w-full bg-transparent px-3 py-1.5 text-xs text-forge-text font-mono focus:outline-none"
-                    />
-                    <button
-                      onClick={handleCopyClone}
-                      className="px-3 py-1.5 bg-forge-card hover:bg-forge-border border-l border-forge-border text-xs text-forge-text transition-colors flex items-center gap-1"
-                      title="Copy to clipboard"
-                    >
-                      {copiedClone ? (
-                        <Check className="w-3.5 h-3.5 text-emerald-400" />
-                      ) : (
-                        <Copy className="w-3.5 h-3.5" />
-                      )}
-                    </button>
-                  </div>
-                  <p className="text-[11px] text-forge-muted mt-2">
-                    Use your ForgeHub username and Personal Access Token to authenticate via CLI.
-                  </p>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {repo.description && (
-            <p className="text-xs text-forge-muted mt-2">{repo.description}</p>
-          )}
-        </div>
-      </div>
+      {/* Top Header Navigation Tabs */}
+      <RepoHeader repo={repo} activeTab="code" openIssuesCount={openIssuesCount} />
 
       {/* Main Content Area */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
