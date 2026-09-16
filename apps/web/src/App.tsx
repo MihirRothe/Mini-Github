@@ -25,6 +25,8 @@ import { ComparePage } from './pages/pulls/ComparePage';
 import { PullDetailPage } from './pages/pulls/PullDetailPage';
 import { ActionsListPage } from './pages/actions/ActionsListPage';
 import { PipelineRunDetailPage } from './pages/actions/PipelineRunDetailPage';
+import { WebhooksListPage } from './pages/settings/WebhooksListPage';
+import { WebhookEditPage } from './pages/settings/WebhookEditPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 
 const queryClient = new QueryClient({
@@ -77,6 +79,11 @@ export const App: React.FC = () => {
               {/* Actions & CI/CD Pipelines (Phase 7) */}
               <Route path="/:owner/:repo/actions" element={<ActionsListPage />} />
               <Route path="/:owner/:repo/actions/runs/:runId" element={<PipelineRunDetailPage />} />
+
+              {/* Webhooks & Automation (Phase 8) */}
+              <Route path="/:owner/:repo/settings/hooks" element={<WebhooksListPage />} />
+              <Route path="/:owner/:repo/settings/hooks/new" element={<WebhookEditPage />} />
+              <Route path="/:owner/:repo/settings/hooks/:hookId" element={<WebhookEditPage />} />
 
               <Route path="/:owner/:repo" element={<RepoOverviewPage />} />
 

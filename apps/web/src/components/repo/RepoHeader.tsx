@@ -11,7 +11,8 @@ import {
   Terminal,
   Copy,
   Check,
-  PlayCircle
+  PlayCircle,
+  Settings
 } from 'lucide-react';
 
 interface RepoHeaderProps {
@@ -67,6 +68,12 @@ export const RepoHeader: React.FC<RepoHeaderProps> = ({
       label: 'Actions',
       icon: PlayCircle,
       href: `/${repo.owner_name}/${repo.slug}/actions`,
+    },
+    {
+      id: 'settings',
+      label: 'Settings',
+      icon: Settings,
+      href: `/${repo.owner_name}/${repo.slug}/settings/hooks`,
     },
   ];
 

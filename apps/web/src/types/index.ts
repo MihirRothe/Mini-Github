@@ -377,4 +377,36 @@ export interface PipelineRunDetail extends PipelineRun {
   jobs: PipelineJob[];
 }
 
+export interface Webhook {
+  id: string;
+  repository_id: string;
+  url: string;
+  content_type: string;
+  secret?: string;
+  has_secret: boolean;
+  events: string[];
+  is_active: boolean;
+  ssl_verification: boolean;
+  last_status?: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface WebhookDelivery {
+  id: string;
+  webhook_id: string;
+  event: string;
+  action?: string;
+  request_headers: Record<string, string>;
+  request_payload: any;
+  response_status_code?: number;
+  response_headers?: Record<string, string>;
+  response_body?: string;
+  duration_ms: number;
+  is_success: boolean;
+  error_message?: string;
+  delivered_at: string;
+}
+
+
 

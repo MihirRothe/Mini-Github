@@ -19,6 +19,7 @@ import (
 	"forgehub/apps/api/internal/modules/repos"
 	"forgehub/apps/api/internal/modules/tokens"
 	"forgehub/apps/api/internal/modules/users"
+	"forgehub/apps/api/internal/modules/webhooks"
 	"forgehub/apps/api/internal/redis"
 
 	"github.com/go-chi/chi/v5"
@@ -80,6 +81,12 @@ func New(opts RouterOptions) *chi.Mux {
 	ciExecutor := ci.NewLocalExecutor(ciStore)
 	ciSvc := ci.NewService(ciStore, reposSvc, gitStorage, gitReader, authRepo, ciExecutor)
 	ciHandler := ci.NewHandler(ciSvc)
+
+	// Webhooks & Automation (Phase 8)
+	webhooksStore := webhooks.NewRepositoryStore(opts.DB)
+	webhooksDispatcher := webhooks.NewDispatcher(webhooksStore)
+	webhooksSvc := webhooks.NewService(webhooksStore, webhooksDispatcher, reposSvc, authRepo)
+	webhooksHandler := webhooks.NewHandler(webhooksSvc)
 
 	// Authentication Context Middleware
 	r.Use(middleware.Authenticate(authSvc, opts.Config.SessionCookieName))
@@ -239,6 +246,17 @@ func New(opts RouterOptions) *chi.Mux {
 			repoRouter.Get("/{owner}/{repo}/actions/jobs/{job_id}", ciHandler.GetJob)
 			repoRouter.Get("/{owner}/{repo}/actions/jobs/{job_id}/logs", ciHandler.GetJobLogs)
 			repoRouter.Get("/{owner}/{repo}/actions/workflows", ciHandler.ListWorkflows)
+
+			// Webhooks & Automation (Phase 8)
+			repoRouter.Get("/{owner}/{repo}/settings/hooks", webhooksHandler.ListWebhooks)
+			repoRouter.With(middleware.RequireAuth).Post("/{owner}/{repo}/settings/hooks", webhooksHandler.CreateWebhook)
+			repoRouter.Get("/{owner}/{repo}/settings/hooks/{hook_id}", webhooksHandler.GetWebhook)
+			repoRouter.With(middleware.RequireAuth).Patch("/{owner}/{repo}/settings/hooks/{hook_id}", webhooksHandler.UpdateWebhook)
+			repoRouter.With(middleware.RequireAuth).Delete("/{owner}/{repo}/settings/hooks/{hook_id}", webhooksHandler.DeleteWebhook)
+			repoRouter.With(middleware.RequireAuth).Post("/{owner}/{repo}/settings/hooks/{hook_id}/tests", webhooksHandler.TestPing)
+			repoRouter.Get("/{owner}/{repo}/settings/hooks/{hook_id}/deliveries", webhooksHandler.ListDeliveries)
+			repoRouter.Get("/{owner}/{repo}/settings/hooks/{hook_id}/deliveries/{delivery_id}", webhooksHandler.GetDelivery)
+			repoRouter.With(middleware.RequireAuth).Post("/{owner}/{repo}/settings/hooks/{hook_id}/deliveries/{delivery_id}/redeliver", webhooksHandler.Redeliver)
 		})
 	})
 
