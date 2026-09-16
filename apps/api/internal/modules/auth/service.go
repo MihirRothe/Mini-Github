@@ -221,6 +221,28 @@ func (s *Service) ValidateAPIToken(ctx context.Context, rawToken string) (*User,
 	return user, token, nil
 }
 
+func (s *Service) AuthenticateCredentials(ctx context.Context, login, password string) (*User, error) {
+	login = strings.TrimSpace(login)
+	if login == "" || password == "" {
+		return nil, ErrInvalidCredentials
+	}
+	user, err := s.repo.GetUserByLogin(ctx, login)
+	if err != nil {
+		if errors.Is(err, ErrUserNotFound) {
+			return nil, ErrInvalidCredentials
+		}
+		return nil, err
+	}
+	if user.IsSuspended {
+		return nil, ErrAccountSuspended
+	}
+	match, err := internalAuth.VerifyPassword(password, user.PasswordHash)
+	if err != nil || !match {
+		return nil, ErrInvalidCredentials
+	}
+	return user, nil
+}
+
 func (s *Service) GetUserProfile(ctx context.Context, username string) (*PublicUser, error) {
 	user, err := s.repo.GetUserByUsername(ctx, username)
 	if err != nil {

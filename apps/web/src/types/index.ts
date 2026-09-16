@@ -78,10 +78,20 @@ export interface Repository {
   description: string;
   visibility: 'public' | 'private' | 'internal';
   default_branch: string;
+  is_archived?: boolean;
+  is_fork?: boolean;
+  forked_from_id?: string;
+  owner_type?: 'user' | 'org';
+  owner_user_id?: string;
+  owner_org_id?: string;
   owner_name: string;
+  clone_url?: string;
+  http_clone_url?: string;
   stars_count: number;
   forks_count: number;
+  created_at?: string;
   updated_at: string;
+  current_user_permission?: RepoPermission;
 }
 
 export type OrgRole = 'owner' | 'admin' | 'member' | 'billing_manager';

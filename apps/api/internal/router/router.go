@@ -8,10 +8,12 @@ import (
 	"forgehub/apps/api/internal/config"
 	"forgehub/apps/api/internal/database"
 	"forgehub/apps/api/internal/errors"
+	"forgehub/apps/api/internal/git"
 	"forgehub/apps/api/internal/middleware"
 	authModule "forgehub/apps/api/internal/modules/auth"
 	"forgehub/apps/api/internal/modules/health"
 	"forgehub/apps/api/internal/modules/orgs"
+	"forgehub/apps/api/internal/modules/repos"
 	"forgehub/apps/api/internal/modules/tokens"
 	"forgehub/apps/api/internal/modules/users"
 	"forgehub/apps/api/internal/redis"
@@ -51,6 +53,15 @@ func New(opts RouterOptions) *chi.Mux {
 	orgsRepo := orgs.NewRepository(opts.DB, authRepo)
 	orgsSvc := orgs.NewService(orgsRepo, authRepo)
 
+	// Git Storage & Repositories (Phase 4)
+	gitStorage, err := git.NewStorage(opts.Config.GitRootDir)
+	if err != nil {
+		panic("failed to initialize git storage: " + err.Error())
+	}
+	gitReader := git.NewReader()
+	repoStore := repos.NewRepositoryStore(opts.DB)
+	reposSvc := repos.NewService(repoStore, gitStorage, gitReader, authRepo, orgsRepo, opts.Config)
+
 	// Authentication Context Middleware
 	r.Use(middleware.Authenticate(authSvc, opts.Config.SessionCookieName))
 
@@ -62,7 +73,15 @@ func New(opts RouterOptions) *chi.Mux {
 	userHandler := users.NewHandler(authSvc)
 	tokenHandler := tokens.NewHandler(authSvc)
 	orgsHandler := orgs.NewHandler(orgsSvc)
+	reposHandler := repos.NewHandler(reposSvc)
+	gitHTTPHandler := repos.NewGitHTTPHandler(reposSvc, authSvc)
 	healthHandler := health.NewHandler(opts.DB, opts.Redis)
+
+	// Git Smart HTTP Protocol Endpoints (clone, fetch, push)
+	r.Get("/{owner}/{repo}.git/info/refs", gitHTTPHandler.InfoRefs)
+	r.Post("/{owner}/{repo}.git/{service:(git-upload-pack|git-receive-pack)}", gitHTTPHandler.ServiceRPC)
+	r.Get("/{owner}/{repo}/info/refs", gitHTTPHandler.InfoRefs)
+	r.Post("/{owner}/{repo}/{service:(git-upload-pack|git-receive-pack)}", gitHTTPHandler.ServiceRPC)
 
 	// Custom 404 & 405 error handlers
 	r.NotFound(func(w http.ResponseWriter, r *http.Request) {
@@ -135,6 +154,23 @@ func New(opts RouterOptions) *chi.Mux {
 			orgRouter.With(middleware.RequireAuth).Post("/{org}/teams/{team}/members", orgsHandler.AddTeamMember)
 			orgRouter.With(middleware.RequireAuth).Patch("/{org}/teams/{team}/members/{username}", orgsHandler.UpdateTeamMemberRole)
 			orgRouter.With(middleware.RequireAuth).Delete("/{org}/teams/{team}/members/{username}", orgsHandler.RemoveTeamMember)
+		})
+
+		// Repositories & Git Data (Phase 4)
+		v1.Route("/repos", func(repoRouter chi.Router) {
+			repoRouter.With(middleware.RequireAuth).Post("/", reposHandler.CreateRepo)
+			repoRouter.Get("/", reposHandler.ListRepos)
+			repoRouter.Get("/{owner}/{repo}", reposHandler.GetRepo)
+			repoRouter.With(middleware.RequireAuth).Patch("/{owner}/{repo}", reposHandler.UpdateRepo)
+			repoRouter.With(middleware.RequireAuth).Delete("/{owner}/{repo}", reposHandler.DeleteRepo)
+
+			// Git Tree, Commits & Blobs
+			repoRouter.Get("/{owner}/{repo}/branches", reposHandler.GetBranches)
+			repoRouter.Get("/{owner}/{repo}/commits", reposHandler.GetCommits)
+			repoRouter.Get("/{owner}/{repo}/tree/{ref}", reposHandler.GetTree)
+			repoRouter.Get("/{owner}/{repo}/tree/{ref}/*", reposHandler.GetTree)
+			repoRouter.Get("/{owner}/{repo}/blob/{ref}/*", reposHandler.GetBlob)
+			repoRouter.Get("/{owner}/{repo}/readme", reposHandler.GetReadme)
 		})
 	})
 
