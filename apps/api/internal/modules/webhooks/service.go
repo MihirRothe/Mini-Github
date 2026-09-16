@@ -118,9 +118,10 @@ func (s *service) CreateWebhook(ctx context.Context, currentUserID string, isSit
 		return nil, err
 	}
 
+	hookForPing := *hook
 	// Trigger initial ping verification
 	go func() {
-		_, _ = s.sendPing(context.Background(), hook, repo, currentUserID)
+		_, _ = s.sendPing(context.Background(), &hookForPing, repo, currentUserID)
 	}()
 
 	hook.Secret = ""

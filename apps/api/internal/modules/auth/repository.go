@@ -225,6 +225,9 @@ func (r *sqlRepository) ListAPITokens(ctx context.Context, userID string) ([]*AP
 		}
 		tokens = append(tokens, &t)
 	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
 	return tokens, nil
 }
 

@@ -241,6 +241,16 @@ func (e *localExecutor) streamPipe(r io.Reader, jobID, stepID, stream string, li
 			Stream:        stream,
 		})
 	}
+	if err := scanner.Err(); err != nil {
+		lineNum := atomic.AddInt64(lineCounter, 1)
+		_ = e.store.AppendJobLog(context.Background(), &JobLog{
+			PipelineJobID: jobID,
+			StepID:        &stepID,
+			LineNumber:    int(lineNum),
+			Content:       fmt.Sprintf("Error reading stream: %v", err),
+			Stream:        stream,
+		})
+	}
 }
 
 func (e *localExecutor) evaluateRunCompletion(ctx context.Context, runID string) {

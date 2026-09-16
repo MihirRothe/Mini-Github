@@ -82,7 +82,6 @@ func VerifyPassword(password, encodedHash string) (bool, error) {
 	if err != nil {
 		return false, ErrInvalidHash
 	}
-	params.SaltLength = uint32(len(salt))
 
 	expectedHash, err := base64.RawStdEncoding.DecodeString(parts[5])
 	if err != nil {
