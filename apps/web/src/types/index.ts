@@ -310,3 +310,71 @@ export interface PullRequestDetail extends PullRequest {
   has_conflicts: boolean;
 }
 
+export type PipelineStatus = 'queued' | 'running' | 'success' | 'failure' | 'cancelled';
+export type JobStatus = 'queued' | 'running' | 'success' | 'failure' | 'skipped' | 'cancelled';
+export type StepStatus = 'pending' | 'running' | 'success' | 'failure' | 'skipped';
+
+export interface PipelineRun {
+  id: string;
+  repository_id: string;
+  workflow_name: string;
+  workflow_file: string;
+  trigger_event: string;
+  trigger_user_id?: string;
+  trigger_user?: PublicUser;
+  commit_sha: string;
+  commit_message: string;
+  branch: string;
+  status: PipelineStatus;
+  started_at?: string;
+  finished_at?: string;
+  duration_ms: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PipelineJob {
+  id: string;
+  pipeline_run_id: string;
+  job_key: string;
+  name: string;
+  runs_on: string;
+  status: JobStatus;
+  started_at?: string;
+  finished_at?: string;
+  duration_ms: number;
+  exit_code?: number;
+  created_at: string;
+  updated_at: string;
+  steps?: JobStep[];
+}
+
+export interface JobStep {
+  id: string;
+  pipeline_job_id: string;
+  step_number: number;
+  name: string;
+  command: string;
+  status: StepStatus;
+  started_at?: string;
+  finished_at?: string;
+  duration_ms: number;
+  exit_code?: number;
+  created_at: string;
+}
+
+export interface JobLog {
+  id: string;
+  pipeline_job_id: string;
+  step_id?: string;
+  line_number: number;
+  content: string;
+  stream: 'stdout' | 'stderr' | 'system';
+  created_at: string;
+}
+
+export interface PipelineRunDetail extends PipelineRun {
+  jobs: PipelineJob[];
+}
+
+

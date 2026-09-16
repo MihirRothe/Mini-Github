@@ -11,6 +11,7 @@ import (
 	"forgehub/apps/api/internal/git"
 	"forgehub/apps/api/internal/middleware"
 	authModule "forgehub/apps/api/internal/modules/auth"
+	"forgehub/apps/api/internal/modules/ci"
 	"forgehub/apps/api/internal/modules/health"
 	"forgehub/apps/api/internal/modules/issues"
 	"forgehub/apps/api/internal/modules/orgs"
@@ -73,6 +74,12 @@ func New(opts RouterOptions) *chi.Mux {
 	pullsStore := pulls.NewRepositoryStore(opts.DB, authRepo)
 	pullsSvc := pulls.NewService(pullsStore, reposSvc, gitStorage, gitReader, authRepo)
 	pullsHandler := pulls.NewHandler(pullsSvc)
+
+	// CI/CD Pipelines & Container Runners (Phase 7)
+	ciStore := ci.NewRepositoryStore(opts.DB, authRepo)
+	ciExecutor := ci.NewLocalExecutor(ciStore)
+	ciSvc := ci.NewService(ciStore, reposSvc, gitStorage, gitReader, authRepo, ciExecutor)
+	ciHandler := ci.NewHandler(ciSvc)
 
 	// Authentication Context Middleware
 	r.Use(middleware.Authenticate(authSvc, opts.Config.SessionCookieName))
@@ -222,6 +229,16 @@ func New(opts RouterOptions) *chi.Mux {
 			repoRouter.With(middleware.RequireAuth).Post("/{owner}/{repo}/pulls/{number}/comments", pullsHandler.CreateComment)
 			repoRouter.With(middleware.RequireAuth).Delete("/{owner}/{repo}/pulls/{number}/comments/{comment_id}", pullsHandler.DeleteComment)
 			repoRouter.Get("/{owner}/{repo}/compare/{spec}", pullsHandler.Compare)
+
+			// CI/CD Actions & Pipelines (Phase 7)
+			repoRouter.Get("/{owner}/{repo}/actions/runs", ciHandler.ListRuns)
+			repoRouter.With(middleware.RequireAuth).Post("/{owner}/{repo}/actions/runs", ciHandler.TriggerRun)
+			repoRouter.Get("/{owner}/{repo}/actions/runs/{run_id}", ciHandler.GetRun)
+			repoRouter.With(middleware.RequireAuth).Post("/{owner}/{repo}/actions/runs/{run_id}/cancel", ciHandler.CancelRun)
+			repoRouter.With(middleware.RequireAuth).Post("/{owner}/{repo}/actions/runs/{run_id}/rerun", ciHandler.Rerun)
+			repoRouter.Get("/{owner}/{repo}/actions/jobs/{job_id}", ciHandler.GetJob)
+			repoRouter.Get("/{owner}/{repo}/actions/jobs/{job_id}/logs", ciHandler.GetJobLogs)
+			repoRouter.Get("/{owner}/{repo}/actions/workflows", ciHandler.ListWorkflows)
 		})
 	})
 

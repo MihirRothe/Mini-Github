@@ -10,12 +10,13 @@ import {
   Lock,
   Terminal,
   Copy,
-  Check
+  Check,
+  PlayCircle
 } from 'lucide-react';
 
 interface RepoHeaderProps {
   repo: Repository;
-  activeTab: 'code' | 'issues' | 'pulls' | 'settings';
+  activeTab: 'code' | 'issues' | 'pulls' | 'actions' | 'settings';
   openIssuesCount?: number;
   openPullsCount?: number;
 }
@@ -60,6 +61,12 @@ export const RepoHeader: React.FC<RepoHeaderProps> = ({
       icon: GitPullRequest,
       href: `/${repo.owner_name}/${repo.slug}/pulls`,
       count: openPullsCount,
+    },
+    {
+      id: 'actions',
+      label: 'Actions',
+      icon: PlayCircle,
+      href: `/${repo.owner_name}/${repo.slug}/actions`,
     },
   ];
 

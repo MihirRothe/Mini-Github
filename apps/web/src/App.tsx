@@ -23,6 +23,8 @@ import { IssueDetailPage } from './pages/issues/IssueDetailPage';
 import { PullsListPage } from './pages/pulls/PullsListPage';
 import { ComparePage } from './pages/pulls/ComparePage';
 import { PullDetailPage } from './pages/pulls/PullDetailPage';
+import { ActionsListPage } from './pages/actions/ActionsListPage';
+import { PipelineRunDetailPage } from './pages/actions/PipelineRunDetailPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 
 const queryClient = new QueryClient({
@@ -71,6 +73,10 @@ export const App: React.FC = () => {
               <Route path="/:owner/:repo/compare" element={<ComparePage />} />
               <Route path="/:owner/:repo/compare/:spec" element={<ComparePage />} />
               <Route path="/:owner/:repo/pulls/:number" element={<PullDetailPage />} />
+
+              {/* Actions & CI/CD Pipelines (Phase 7) */}
+              <Route path="/:owner/:repo/actions" element={<ActionsListPage />} />
+              <Route path="/:owner/:repo/actions/runs/:runId" element={<PipelineRunDetailPage />} />
 
               <Route path="/:owner/:repo" element={<RepoOverviewPage />} />
 

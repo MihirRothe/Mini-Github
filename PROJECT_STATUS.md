@@ -6,9 +6,9 @@ ForgeHub is an independent, production-grade, self-hostable developer collaborat
 
 ## Current Milestone
 
-* **Current Phase**: **PHASE 7 — CI/CD System & Container Runners** (Up Next)
-* **Completed Milestones**: Phase 1 (Foundation), Phase 2 (Authentication & User Management), Phase 3 (Organizations, Teams & RBAC), Phase 4 (Git Storage & Smart HTTP Engine), Phase 5 (Issues & Collaboration), Phase 6 (Pull Requests & Code Review)
-* **Target**: Containerized CI/CD workflow parser, job queue, pipeline executor, runner communication, and live log streaming.
+* **Current Phase**: **PHASE 8 — Webhooks & Automation** (Up Next)
+* **Completed Milestones**: Phase 1 (Foundation), Phase 2 (Authentication & User Management), Phase 3 (Organizations, Teams & RBAC), Phase 4 (Git Storage & Smart HTTP Engine), Phase 5 (Issues & Collaboration), Phase 6 (Pull Requests & Code Review), Phase 7 (CI/CD System & Container Runners)
+* **Target**: Event dispatcher, HMAC-SHA256 signed payloads, webhook deliveries, retry queue, delivery history inspection.
 
 ---
 
@@ -22,7 +22,7 @@ ForgeHub is an independent, production-grade, self-hostable developer collaborat
 | **Phase 4** | **Git Storage & Smart HTTP** (Bare repos, Git HTTP clone/push, branch/tree browsing) | 🟢 **Completed** | Git CLI clone/push over HTTP, Smart HTTP auth/permission tests, file browser UI |
 | **Phase 5** | **Issues & Collaboration** (Issue tracker, comments, labels, milestones, assignments) | 🟢 **Completed** | Issues CRUD, comments thread, state toggling, labels, milestones, filtering |
 | **Phase 6** | **Pull Requests & Code Review** (Diff viewer, PR lifecycle, reviews, approvals, merge engine) | 🟢 **Completed** | PR creation, reviews, approvals, comments, 3-way merge & squash tests |
-| **Phase 7** | **CI/CD System & Container Runners** (Workflow parser, job queue, Docker runner, log streaming) | ⚪ Planned | Containerized build execution & log stream tests |
+| **Phase 7** | **CI/CD System & Container Runners** (Workflow parser, job queue, Docker runner, log streaming) | 🟢 **Completed** | YAML parser, step execution, failing step skipping, live logs |
 | **Phase 8** | **Webhooks & Automation** (Event dispatcher, signed payloads, delivery retries) | ⚪ Planned | Webhook delivery & retry tests |
 | **Phase 9** | **Global Search** (Full-text repository, issue, PR, and code search) | ⚪ Planned | Search relevance & filter tests |
 | **Phase 10** | **ForgeAI** (Provider abstraction, code explanation, PR review, test generation) | ⚪ Planned | AI prompt security, response validation tests |
