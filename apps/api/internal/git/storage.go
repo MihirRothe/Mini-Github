@@ -23,6 +23,8 @@ type Storage interface {
 	InitRepository(ownerType, ownerSlug, repoSlug, defaultBranch string) (string, error)
 	DeleteRepository(ownerType, ownerSlug, repoSlug string) error
 	CreateInitialCommit(diskPath, defaultBranch, readmeContent, committerName, committerEmail string) error
+	CheckMergeable(diskPath, baseBranch, headBranch string) (bool, error)
+	MergeBranches(diskPath, baseBranch, headBranch, method, committerName, committerEmail, commitMsg string) (string, error)
 }
 
 type localStorage struct {
@@ -203,4 +205,83 @@ func (s *localStorage) CreateInitialCommit(diskPath, defaultBranch, readmeConten
 	_ = os.WriteFile(headPath, []byte(fmt.Sprintf("ref: %s\n", refPath)), 0644)
 
 	return nil
+}
+
+func (s *localStorage) CheckMergeable(diskPath, baseBranch, headBranch string) (bool, error) {
+	cmd := exec.Command("git", "-C", diskPath, "merge-tree", "--write-tree", baseBranch, headBranch)
+	err := cmd.Run()
+	if err != nil {
+		return false, nil // Has conflicts
+	}
+	return true, nil
+}
+
+func (s *localStorage) MergeBranches(diskPath, baseBranch, headBranch, method, committerName, committerEmail, commitMsg string) (string, error) {
+	if committerName == "" {
+		committerName = "ForgeHub"
+	}
+	if committerEmail == "" {
+		committerEmail = "noreply@forgehub.local"
+	}
+	if commitMsg == "" {
+		commitMsg = fmt.Sprintf("Merge branch '%s' into %s", headBranch, baseBranch)
+	}
+
+	// 1. Get merged tree SHA
+	treeCmd := exec.Command("git", "-C", diskPath, "merge-tree", "--write-tree", baseBranch, headBranch)
+	treeOut, err := treeCmd.Output()
+	if err != nil {
+		return "", errors.New("cannot merge: branches have conflicts")
+	}
+	treeSHA := strings.TrimSpace(string(treeOut))
+
+	// 2. Get base and head commit SHAs
+	baseCommitCmd := exec.Command("git", "-C", diskPath, "rev-parse", baseBranch)
+	baseOut, err := baseCommitCmd.Output()
+	if err != nil {
+		return "", fmt.Errorf("resolve base commit: %w", err)
+	}
+	baseSHA := strings.TrimSpace(string(baseOut))
+
+	headCommitCmd := exec.Command("git", "-C", diskPath, "rev-parse", headBranch)
+	headOut, err := headCommitCmd.Output()
+	if err != nil {
+		return "", fmt.Errorf("resolve head commit: %w", err)
+	}
+	headSHA := strings.TrimSpace(string(headOut))
+
+	// 3. Create merge commit
+	var commitArgs []string
+	if method == "squash" {
+		// Squash merge: single parent (baseSHA)
+		commitArgs = []string{"-C", diskPath, "commit-tree", treeSHA, "-p", baseSHA}
+	} else {
+		// Standard merge commit: two parents (baseSHA and headSHA)
+		commitArgs = []string{"-C", diskPath, "commit-tree", treeSHA, "-p", baseSHA, "-p", headSHA}
+	}
+
+	commitCmd := exec.Command("git", commitArgs...)
+	commitCmd.Env = append(os.Environ(),
+		"GIT_AUTHOR_NAME="+committerName,
+		"GIT_AUTHOR_EMAIL="+committerEmail,
+		"GIT_AUTHOR_DATE="+time.Now().UTC().Format(time.RFC3339),
+		"GIT_COMMITTER_NAME="+committerName,
+		"GIT_COMMITTER_EMAIL="+committerEmail,
+		"GIT_COMMITTER_DATE="+time.Now().UTC().Format(time.RFC3339),
+	)
+	commitCmd.Stdin = strings.NewReader(commitMsg + "\n")
+	commitOut, err := commitCmd.Output()
+	if err != nil {
+		return "", fmt.Errorf("commit-tree failed: %w", err)
+	}
+	mergeCommitSHA := strings.TrimSpace(string(commitOut))
+
+	// 4. Update base branch ref
+	refPath := "refs/heads/" + baseBranch
+	updateRefCmd := exec.Command("git", "-C", diskPath, "update-ref", refPath, mergeCommitSHA)
+	if err := updateRefCmd.Run(); err != nil {
+		return "", fmt.Errorf("update-ref failed: %w", err)
+	}
+
+	return mergeCommitSHA, nil
 }

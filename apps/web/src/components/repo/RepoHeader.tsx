@@ -17,12 +17,14 @@ interface RepoHeaderProps {
   repo: Repository;
   activeTab: 'code' | 'issues' | 'pulls' | 'settings';
   openIssuesCount?: number;
+  openPullsCount?: number;
 }
 
 export const RepoHeader: React.FC<RepoHeaderProps> = ({
   repo,
   activeTab,
   openIssuesCount,
+  openPullsCount,
 }) => {
   const [showCloneDropdown, setShowCloneDropdown] = useState(false);
   const [copiedClone, setCopiedClone] = useState(false);
@@ -57,7 +59,7 @@ export const RepoHeader: React.FC<RepoHeaderProps> = ({
       label: 'Pull Requests',
       icon: GitPullRequest,
       href: `/${repo.owner_name}/${repo.slug}/pulls`,
-      count: 0,
+      count: openPullsCount,
     },
   ];
 

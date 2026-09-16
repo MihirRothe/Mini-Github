@@ -14,6 +14,7 @@ import (
 	"forgehub/apps/api/internal/modules/health"
 	"forgehub/apps/api/internal/modules/issues"
 	"forgehub/apps/api/internal/modules/orgs"
+	"forgehub/apps/api/internal/modules/pulls"
 	"forgehub/apps/api/internal/modules/repos"
 	"forgehub/apps/api/internal/modules/tokens"
 	"forgehub/apps/api/internal/modules/users"
@@ -67,6 +68,11 @@ func New(opts RouterOptions) *chi.Mux {
 	issuesStore := issues.NewRepositoryStore(opts.DB, authRepo)
 	issuesSvc := issues.NewService(issuesStore, reposSvc, authRepo)
 	issuesHandler := issues.NewHandler(issuesSvc)
+
+	// Pull Requests & Reviews (Phase 6)
+	pullsStore := pulls.NewRepositoryStore(opts.DB, authRepo)
+	pullsSvc := pulls.NewService(pullsStore, reposSvc, gitStorage, gitReader, authRepo)
+	pullsHandler := pulls.NewHandler(pullsSvc)
 
 	// Authentication Context Middleware
 	r.Use(middleware.Authenticate(authSvc, opts.Config.SessionCookieName))
@@ -201,6 +207,21 @@ func New(opts RouterOptions) *chi.Mux {
 			repoRouter.With(middleware.RequireAuth).Post("/{owner}/{repo}/milestones", issuesHandler.CreateMilestone)
 			repoRouter.With(middleware.RequireAuth).Patch("/{owner}/{repo}/milestones/{milestone_id}", issuesHandler.UpdateMilestone)
 			repoRouter.With(middleware.RequireAuth).Delete("/{owner}/{repo}/milestones/{milestone_id}", issuesHandler.DeleteMilestone)
+
+			// Pull Requests & Code Review (Phase 6)
+			repoRouter.Get("/{owner}/{repo}/pulls", pullsHandler.ListPulls)
+			repoRouter.With(middleware.RequireAuth).Post("/{owner}/{repo}/pulls", pullsHandler.CreatePull)
+			repoRouter.Get("/{owner}/{repo}/pulls/{number}", pullsHandler.GetPull)
+			repoRouter.With(middleware.RequireAuth).Patch("/{owner}/{repo}/pulls/{number}", pullsHandler.UpdatePull)
+			repoRouter.With(middleware.RequireAuth).Post("/{owner}/{repo}/pulls/{number}/merge", pullsHandler.MergePull)
+			repoRouter.Get("/{owner}/{repo}/pulls/{number}/diff", pullsHandler.GetPullDiff)
+			repoRouter.Get("/{owner}/{repo}/pulls/{number}/commits", pullsHandler.GetPullCommits)
+			repoRouter.Get("/{owner}/{repo}/pulls/{number}/reviews", pullsHandler.ListReviews)
+			repoRouter.With(middleware.RequireAuth).Post("/{owner}/{repo}/pulls/{number}/reviews", pullsHandler.CreateReview)
+			repoRouter.Get("/{owner}/{repo}/pulls/{number}/comments", pullsHandler.ListComments)
+			repoRouter.With(middleware.RequireAuth).Post("/{owner}/{repo}/pulls/{number}/comments", pullsHandler.CreateComment)
+			repoRouter.With(middleware.RequireAuth).Delete("/{owner}/{repo}/pulls/{number}/comments/{comment_id}", pullsHandler.DeleteComment)
+			repoRouter.Get("/{owner}/{repo}/compare/{spec}", pullsHandler.Compare)
 		})
 	})
 

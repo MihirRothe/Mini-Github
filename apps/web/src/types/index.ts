@@ -209,3 +209,104 @@ export interface IssueDetail extends Issue {
   comments: IssueComment[];
 }
 
+export interface GitCommit {
+  sha: string;
+  short_sha: string;
+  author_name: string;
+  author_email: string;
+  committer_name: string;
+  committer_email: string;
+  message: string;
+  date: string;
+}
+
+export type ReviewState = 'APPROVED' | 'CHANGES_REQUESTED' | 'COMMENTED' | 'PENDING';
+
+export interface PullRequest {
+  id: string;
+  repository_id: string;
+  number: number;
+  title: string;
+  body: string;
+  state: 'open' | 'closed' | 'merged';
+  is_draft: boolean;
+  source_branch: string;
+  target_branch: string;
+  author_id?: string;
+  author?: User | PublicUser;
+  merge_commit_sha?: string;
+  merged_by_id?: string;
+  merged_by?: User | PublicUser;
+  merged_at?: string;
+  closed_at?: string;
+  comments_count: number;
+  reviews_count: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PullRequestReview {
+  id: string;
+  pull_request_id: string;
+  reviewer_id: string;
+  reviewer?: User | PublicUser;
+  state: ReviewState;
+  body: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PullRequestComment {
+  id: string;
+  pull_request_id: string;
+  review_id?: string;
+  author_id?: string;
+  author?: User | PublicUser;
+  file_path?: string;
+  line_number?: number;
+  body: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface DiffLine {
+  type: 'context' | 'addition' | 'deletion';
+  content: string;
+  old_line_no: number;
+  new_line_no: number;
+}
+
+export interface DiffHunk {
+  old_start: number;
+  old_lines: number;
+  new_start: number;
+  new_lines: number;
+  header: string;
+  lines: DiffLine[];
+}
+
+export interface DiffFile {
+  old_path: string;
+  new_path: string;
+  status: 'added' | 'modified' | 'deleted' | 'renamed';
+  additions: number;
+  deletions: number;
+  hunks: DiffHunk[];
+}
+
+export interface DiffResult {
+  files: DiffFile[];
+  total_files: number;
+  total_additions: number;
+  total_deletions: number;
+}
+
+export interface PullRequestDetail extends PullRequest {
+  reviews: PullRequestReview[];
+  comments: PullRequestComment[];
+  commits: GitCommit[];
+  diff?: DiffResult;
+  can_merge: boolean;
+  has_conflicts: boolean;
+}
+

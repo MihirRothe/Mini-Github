@@ -48,6 +48,37 @@ type BlobInfo struct {
 	IsBinary bool   `json:"is_binary"`
 }
 
+type DiffLine struct {
+	Type    string `json:"type"` // "context", "add", "del"
+	Content string `json:"content"`
+	OldNum  int    `json:"old_num,omitempty"`
+	NewNum  int    `json:"new_num,omitempty"`
+}
+
+type DiffHunk struct {
+	Header string     `json:"header"`
+	Lines  []DiffLine `json:"lines"`
+}
+
+type DiffFile struct {
+	OldPath   string     `json:"old_path"`
+	NewPath   string     `json:"new_path"`
+	Status    string     `json:"status"` // "added", "modified", "deleted"
+	Additions int        `json:"additions"`
+	Deletions int        `json:"deletions"`
+	Hunks     []DiffHunk `json:"hunks"`
+	Patch     string     `json:"patch"`
+}
+
+type DiffResult struct {
+	BaseRef        string      `json:"base_ref"`
+	HeadRef        string      `json:"head_ref"`
+	Files          []*DiffFile `json:"files"`
+	TotalAdditions int         `json:"total_additions"`
+	TotalDeletions int         `json:"total_deletions"`
+	FilesChanged   int         `json:"files_changed"`
+}
+
 type Reader interface {
 	GetDefaultBranch(diskPath string) (string, error)
 	ListBranches(diskPath string) ([]BranchInfo, error)
@@ -56,6 +87,8 @@ type Reader interface {
 	ListTree(diskPath, ref, subPath string) ([]TreeEntry, error)
 	GetBlob(diskPath, ref, filePath string) (*BlobInfo, error)
 	GetReadme(diskPath, ref string) (*BlobInfo, error)
+	DiffBranches(diskPath, baseRef, headRef string) (*DiffResult, error)
+	GetCommitsBetween(diskPath, baseRef, headRef string) ([]CommitInfo, error)
 }
 
 type localReader struct{}
@@ -289,4 +322,146 @@ func min(a, b int) int {
 		return a
 	}
 	return b
+}
+
+func (r *localReader) DiffBranches(diskPath, baseRef, headRef string) (*DiffResult, error) {
+	cmd := exec.Command("git", "-C", diskPath, "diff", "-p", "-U3", fmt.Sprintf("%s...%s", baseRef, headRef))
+	out, err := cmd.Output()
+	if err != nil {
+		return &DiffResult{BaseRef: baseRef, HeadRef: headRef, Files: []*DiffFile{}}, nil
+	}
+
+	result := &DiffResult{
+		BaseRef: baseRef,
+		HeadRef: headRef,
+		Files:   []*DiffFile{},
+	}
+
+	rawPatch := string(out)
+	if strings.TrimSpace(rawPatch) == "" {
+		return result, nil
+	}
+
+	fileBlocks := strings.Split(rawPatch, "diff --git ")
+	for _, block := range fileBlocks {
+		block = strings.TrimSpace(block)
+		if block == "" {
+			continue
+		}
+
+		lines := strings.Split(block, "\n")
+		headerParts := strings.Fields(lines[0])
+		if len(headerParts) < 2 {
+			continue
+		}
+
+		oldPath := strings.TrimPrefix(headerParts[0], "a/")
+		newPath := strings.TrimPrefix(headerParts[1], "b/")
+		status := "modified"
+
+		diffFile := &DiffFile{
+			OldPath: oldPath,
+			NewPath: newPath,
+			Status:  status,
+			Hunks:   []DiffHunk{},
+			Patch:   "diff --git " + block,
+		}
+
+		var currentHunk *DiffHunk
+		oldLineNum := 0
+		newLineNum := 0
+
+		for _, line := range lines[1:] {
+			if strings.HasPrefix(line, "new file mode") {
+				diffFile.Status = "added"
+			} else if strings.HasPrefix(line, "deleted file mode") {
+				diffFile.Status = "deleted"
+			} else if strings.HasPrefix(line, "@@") {
+				if currentHunk != nil {
+					diffFile.Hunks = append(diffFile.Hunks, *currentHunk)
+				}
+				currentHunk = &DiffHunk{
+					Header: line,
+					Lines:  []DiffLine{},
+				}
+				hunkParts := strings.Split(line, " ")
+				if len(hunkParts) >= 3 {
+					oldPart := strings.TrimPrefix(hunkParts[1], "-")
+					newPart := strings.TrimPrefix(hunkParts[2], "+")
+					oldNums := strings.Split(oldPart, ",")
+					newNums := strings.Split(newPart, ",")
+					oldLineNum, _ = strconv.Atoi(oldNums[0])
+					newLineNum, _ = strconv.Atoi(newNums[0])
+				}
+			} else if currentHunk != nil {
+				if strings.HasPrefix(line, "+") && !strings.HasPrefix(line, "+++") {
+					diffFile.Additions++
+					result.TotalAdditions++
+					currentHunk.Lines = append(currentHunk.Lines, DiffLine{
+						Type:    "add",
+						Content: line[1:],
+						NewNum:  newLineNum,
+					})
+					newLineNum++
+				} else if strings.HasPrefix(line, "-") && !strings.HasPrefix(line, "---") {
+					diffFile.Deletions++
+					result.TotalDeletions++
+					currentHunk.Lines = append(currentHunk.Lines, DiffLine{
+						Type:    "del",
+						Content: line[1:],
+						OldNum:  oldLineNum,
+					})
+					oldLineNum++
+				} else if strings.HasPrefix(line, " ") {
+					currentHunk.Lines = append(currentHunk.Lines, DiffLine{
+						Type:    "context",
+						Content: line[1:],
+						OldNum:  oldLineNum,
+						NewNum:  newLineNum,
+					})
+					oldLineNum++
+					newLineNum++
+				}
+			}
+		}
+
+		if currentHunk != nil {
+			diffFile.Hunks = append(diffFile.Hunks, *currentHunk)
+		}
+
+		result.Files = append(result.Files, diffFile)
+	}
+
+	result.FilesChanged = len(result.Files)
+	return result, nil
+}
+
+func (r *localReader) GetCommitsBetween(diskPath, baseRef, headRef string) ([]CommitInfo, error) {
+	cmd := exec.Command("git", "-C", diskPath, "log", "--format=%H|%h|%an|%ae|%at|%s", fmt.Sprintf("%s..%s", baseRef, headRef))
+	out, err := cmd.Output()
+	if err != nil {
+		return []CommitInfo{}, nil
+	}
+
+	lines := strings.Split(strings.TrimSpace(string(out)), "\n")
+	var commits []CommitInfo
+	for _, line := range lines {
+		line = strings.TrimSpace(line)
+		if line == "" {
+			continue
+		}
+		parts := strings.SplitN(line, "|", 6)
+		if len(parts) >= 6 {
+			sec, _ := strconv.ParseInt(parts[4], 10, 64)
+			commits = append(commits, CommitInfo{
+				Hash:        parts[0],
+				ShortHash:   parts[1],
+				AuthorName:  parts[2],
+				AuthorEmail: parts[3],
+				AuthorDate:  time.Unix(sec, 0).UTC(),
+				Message:     parts[5],
+			})
+		}
+	}
+	return commits, nil
 }

@@ -20,6 +20,9 @@ import { BlobViewPage } from './pages/repo/BlobViewPage';
 import { IssuesListPage } from './pages/issues/IssuesListPage';
 import { NewIssuePage } from './pages/issues/NewIssuePage';
 import { IssueDetailPage } from './pages/issues/IssueDetailPage';
+import { PullsListPage } from './pages/pulls/PullsListPage';
+import { ComparePage } from './pages/pulls/ComparePage';
+import { PullDetailPage } from './pages/pulls/PullDetailPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 
 const queryClient = new QueryClient({
@@ -62,6 +65,12 @@ export const App: React.FC = () => {
               <Route path="/:owner/:repo/issues" element={<IssuesListPage />} />
               <Route path="/:owner/:repo/issues/new" element={<NewIssuePage />} />
               <Route path="/:owner/:repo/issues/:number" element={<IssueDetailPage />} />
+
+              {/* Pull Requests & Code Review (Phase 6) */}
+              <Route path="/:owner/:repo/pulls" element={<PullsListPage />} />
+              <Route path="/:owner/:repo/compare" element={<ComparePage />} />
+              <Route path="/:owner/:repo/compare/:spec" element={<ComparePage />} />
+              <Route path="/:owner/:repo/pulls/:number" element={<PullDetailPage />} />
 
               <Route path="/:owner/:repo" element={<RepoOverviewPage />} />
 
