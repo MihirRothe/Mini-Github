@@ -121,14 +121,15 @@ func (h *GitHTTPHandler) authenticateAndAuthorize(
 	}
 
 	// 4. Enforce Access based on action
-	if serviceName == "git-upload-pack" {
+	switch serviceName {
+	case "git-upload-pack":
 		// Read / Clone / Fetch
 		if repo.Visibility != "public" && !perm.Includes(orgs.PermRead) {
 			w.Header().Set("WWW-Authenticate", `Basic realm="ForgeHub"`)
 			http.Error(w, "Authentication required to read repository", http.StatusUnauthorized)
 			return nil, nil, orgs.PermNone, false
 		}
-	} else if serviceName == "git-receive-pack" {
+	case "git-receive-pack":
 		// Push / Write
 		if user == nil {
 			w.Header().Set("WWW-Authenticate", `Basic realm="ForgeHub"`)

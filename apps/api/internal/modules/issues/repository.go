@@ -191,6 +191,9 @@ func (s *sqlRepositoryStore) getPopulatedIssue(ctx context.Context, issueID stri
 				iss.Labels = append(iss.Labels, &l)
 			}
 		}
+		if err := labelRows.Err(); err != nil {
+			return nil, err
+		}
 	}
 
 	// Assignees
@@ -208,6 +211,9 @@ func (s *sqlRepositoryStore) getPopulatedIssue(ctx context.Context, issueID stri
 					iss.Assignees = append(iss.Assignees, &pub)
 				}
 			}
+		}
+		if err := userRows.Err(); err != nil {
+			return nil, err
 		}
 	}
 
@@ -313,6 +319,9 @@ func (s *sqlRepositoryStore) ListIssues(ctx context.Context, repoID string, filt
 		if err := rows.Scan(&id); err == nil {
 			issueIDs = append(issueIDs, id)
 		}
+	}
+	if err := rows.Err(); err != nil {
+		return nil, 0, 0, err
 	}
 
 	var results []*Issue
@@ -481,6 +490,9 @@ func (s *sqlRepositoryStore) ListComments(ctx context.Context, issueID string) (
 			comments = append(comments, &c)
 		}
 	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
 
 	if comments == nil {
 		comments = []*IssueComment{}
@@ -557,6 +569,9 @@ func (s *sqlRepositoryStore) ListLabels(ctx context.Context, repoID string) ([]*
 		if err := rows.Scan(&l.ID, &l.RepositoryID, &l.Name, &l.Color, &l.Description, &l.CreatedAt); err == nil {
 			labels = append(labels, &l)
 		}
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
 	}
 	if labels == nil {
 		labels = []*Label{}
@@ -652,6 +667,9 @@ func (s *sqlRepositoryStore) ListMilestones(ctx context.Context, repoID string) 
 			&m.OpenIssuesCount, &m.ClosedIssuesCount); err == nil {
 			milestones = append(milestones, &m)
 		}
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
 	}
 	if milestones == nil {
 		milestones = []*Milestone{}
@@ -868,9 +886,10 @@ func (m *memoryRepositoryStore) ListIssues(ctx context.Context, repoID string, f
 	var openCount, closedCount int
 	for _, iss := range m.issues {
 		if iss.RepositoryID == repoID {
-			if iss.State == StateOpen {
+			switch iss.State {
+			case StateOpen:
 				openCount++
-			} else if iss.State == StateClosed {
+			case StateClosed:
 				closedCount++
 			}
 		}
