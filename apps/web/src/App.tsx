@@ -30,6 +30,7 @@ import { WebhookEditPage } from './pages/settings/WebhookEditPage';
 import { SearchPage } from './pages/SearchPage';
 import { AdminDashboardPage } from './pages/admin/AdminDashboardPage';
 import { NotFoundPage } from './pages/NotFoundPage';
+import { ErrorBoundary } from './components/common/ErrorBoundary';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -44,9 +45,10 @@ export const App: React.FC = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <BrowserRouter>
-          <Routes>
-            <Route element={<AppLayout />}>
+        <ErrorBoundary>
+          <BrowserRouter>
+            <Routes>
+              <Route element={<AppLayout />}>
               <Route path="/" element={<Navigate to="/dashboard" replace />} />
               <Route path="/dashboard" element={<DashboardPage />} />
               <Route path="/explore" element={<ExplorePage />} />
@@ -96,8 +98,9 @@ export const App: React.FC = () => {
             </Route>
           </Routes>
         </BrowserRouter>
-      </AuthProvider>
-    </QueryClientProvider>
+      </ErrorBoundary>
+    </AuthProvider>
+  </QueryClientProvider>
   );
 };
 

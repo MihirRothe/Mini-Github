@@ -18,11 +18,17 @@ export const ExplorePage: React.FC = () => {
     },
   });
 
-  const filteredRepos = repositories.filter((repo) => {
+  const filteredRepos = (repositories || []).filter((repo) => {
+    if (!repo) return false;
+    const name = (repo.name || '').toLowerCase();
+    const owner = (repo.owner_name || '').toLowerCase();
+    const desc = (repo.description || '').toLowerCase();
+    const search = (searchTerm || '').toLowerCase();
+
     const matchesSearch =
-      repo.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      repo.owner_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (repo.description && repo.description.toLowerCase().includes(searchTerm.toLowerCase()));
+      name.includes(search) ||
+      owner.includes(search) ||
+      desc.includes(search);
 
     if (!matchesSearch) return false;
     if (filterType === 'all') return true;

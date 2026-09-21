@@ -24,7 +24,7 @@ function hashPathResolverPlugin(): Plugin {
         ];
         for (const c of candidates) {
           if (fs.existsSync(c)) {
-            return c;
+            return c.replace(/\\/g, '/');
           }
         }
       }
@@ -45,11 +45,48 @@ function hashPathResolverPlugin(): Plugin {
         ];
         for (const c of candidates) {
           if (fs.existsSync(c)) {
-            return c;
+            return c.replace(/\\/g, '/');
           }
         }
       }
       return null;
+    },
+    load(id) {
+      const cleanId = id.split('?')[0];
+      const normalized = path.normalize(cleanId);
+      if (fs.existsSync(normalized) && fs.statSync(normalized).isFile()) {
+        return fs.readFileSync(normalized, 'utf-8');
+      }
+      return null;
+    },
+    configureServer(server) {
+      server.middlewares.stack.unshift({
+        route: '',
+        handle: (req: any, res: any, next: any) => {
+          if (req.url && (req.url.startsWith('/node_modules/') || req.url.includes('/node_modules/'))) {
+            const rawPath = req.url.split('?')[0];
+            const nodeModulesIdx = rawPath.indexOf('/node_modules/');
+            const relPath = rawPath.slice(nodeModulesIdx);
+            const filePath = path.join(__dirname, relPath);
+            if (fs.existsSync(filePath) && fs.statSync(filePath).isFile()) {
+              const ext = path.extname(filePath);
+              const contentType =
+                ext === '.js' || ext === '.mjs'
+                  ? 'text/javascript'
+                  : ext === '.css'
+                  ? 'text/css'
+                  : ext === '.json' || ext === '.map'
+                  ? 'application/json'
+                  : 'application/octet-stream';
+              res.setHeader('Content-Type', contentType);
+              res.setHeader('Cache-Control', 'no-cache');
+              fs.createReadStream(filePath).pipe(res);
+              return;
+            }
+          }
+          next();
+        },
+      });
     },
   };
 }

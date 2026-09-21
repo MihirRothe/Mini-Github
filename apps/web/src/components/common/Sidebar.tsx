@@ -78,16 +78,22 @@ export const Sidebar: React.FC = () => {
 
       {/* Footer Info */}
       <div className="pt-4 border-t border-forge-border/60 space-y-1">
-        <a
-          href="/status"
-          className="flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium text-forge-muted hover:text-forge-text hover:bg-forge-card transition-colors"
+        <NavLink
+          to="/status"
+          className={({ isActive }) =>
+            `flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
+              isActive
+                ? 'bg-blue-600/15 text-blue-400 border border-blue-500/20'
+                : 'text-forge-muted hover:text-forge-text hover:bg-forge-card'
+            }`
+          }
         >
           <div className="flex items-center space-x-2">
             <Activity className="w-3.5 h-3.5 text-emerald-400" />
             <span>Diagnostics</span>
           </div>
           <span className="text-[10px] text-forge-muted font-mono">v0.1.0</span>
-        </a>
+        </NavLink>
       </div>
     </aside>
   );

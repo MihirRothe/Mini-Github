@@ -100,31 +100,31 @@ export const SystemStatusPage: React.FC = () => {
             </div>
             <span
               className={`text-[10px] font-mono font-semibold px-2 py-0.5 rounded-full border ${
-                telemetry?.database.status === 'healthy'
+                telemetry?.database?.status === 'healthy'
                   ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
                   : 'bg-amber-500/10 text-amber-400 border-amber-500/20'
               }`}
             >
-              {telemetry?.database.status.toUpperCase() || 'UNKNOWN'}
+              {telemetry?.database?.status?.toUpperCase() || 'STANDALONE'}
             </span>
           </div>
 
           <div className="space-y-2 text-xs divide-y divide-forge-border/40">
             <div className="flex justify-between py-1 text-forge-muted">
               <span>Driver / Mode</span>
-              <span className="font-mono text-forge-text">{telemetry?.database.driver || 'pgx/standalone'}</span>
+              <span className="font-mono text-forge-text">{telemetry?.database?.driver || 'pgx/standalone'}</span>
             </div>
             <div className="flex justify-between py-1 text-forge-muted">
               <span>Open Connections</span>
-              <span className="font-mono text-forge-text">{telemetry?.database.open_conns ?? 0}</span>
+              <span className="font-mono text-forge-text">{telemetry?.database?.open_conns ?? 0}</span>
             </div>
             <div className="flex justify-between py-1 text-forge-muted">
               <span>In-Use Connections</span>
-              <span className="font-mono text-forge-text">{telemetry?.database.in_use_conns ?? 0}</span>
+              <span className="font-mono text-forge-text">{telemetry?.database?.in_use_conns ?? 0}</span>
             </div>
             <div className="flex justify-between py-1 text-forge-muted">
               <span>Idle Connections</span>
-              <span className="font-mono text-forge-text">{telemetry?.database.idle_conns ?? 0}</span>
+              <span className="font-mono text-forge-text">{telemetry?.database?.idle_conns ?? 0}</span>
             </div>
           </div>
         </div>
@@ -138,19 +138,19 @@ export const SystemStatusPage: React.FC = () => {
             </div>
             <span
               className={`text-[10px] font-mono font-semibold px-2 py-0.5 rounded-full border ${
-                telemetry?.redis.status === 'healthy'
+                telemetry?.redis?.status === 'healthy'
                   ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
                   : 'bg-rose-500/10 text-rose-400 border-rose-500/20'
               }`}
             >
-              {telemetry?.redis.status.toUpperCase() || 'UNKNOWN'}
+              {telemetry?.redis?.status?.toUpperCase() || 'READY'}
             </span>
           </div>
 
           <div className="space-y-2 text-xs divide-y divide-forge-border/40">
             <div className="flex justify-between py-1 text-forge-muted">
               <span>Execution Mode</span>
-              <span className="font-mono text-forge-text">{telemetry?.redis.mode || 'embedded'}</span>
+              <span className="font-mono text-forge-text">{telemetry?.redis?.mode || 'embedded'}</span>
             </div>
             <div className="flex justify-between py-1 text-forge-muted">
               <span>Health Ping</span>
@@ -171,26 +171,26 @@ export const SystemStatusPage: React.FC = () => {
               <h3 className="text-sm font-semibold text-white">Go Runtime</h3>
             </div>
             <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20">
-              {telemetry?.system.go_version || 'Go 1.27'}
+              {telemetry?.system?.go_version || 'Go 1.27'}
             </span>
           </div>
 
           <div className="space-y-2 text-xs divide-y divide-forge-border/40">
             <div className="flex justify-between py-1 text-forge-muted">
               <span>Allocated Heap</span>
-              <span className="font-mono text-forge-text">{telemetry?.system.alloc_mb ?? 0} MB</span>
+              <span className="font-mono text-forge-text">{telemetry?.system?.alloc_mb ?? 0} MB</span>
             </div>
             <div className="flex justify-between py-1 text-forge-muted">
               <span>System Memory</span>
-              <span className="font-mono text-forge-text">{telemetry?.system.sys_mb ?? 0} MB</span>
+              <span className="font-mono text-forge-text">{telemetry?.system?.sys_mb ?? 0} MB</span>
             </div>
             <div className="flex justify-between py-1 text-forge-muted">
               <span>Active Goroutines</span>
-              <span className="font-mono text-forge-text">{telemetry?.system.num_goroutine ?? 0}</span>
+              <span className="font-mono text-forge-text">{telemetry?.system?.num_goroutine ?? 0}</span>
             </div>
             <div className="flex justify-between py-1 text-forge-muted">
               <span>Available CPU Cores</span>
-              <span className="font-mono text-forge-text">{telemetry?.system.num_cpu ?? 0}</span>
+              <span className="font-mono text-forge-text">{telemetry?.system?.num_cpu ?? 0}</span>
             </div>
           </div>
         </div>

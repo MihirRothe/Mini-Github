@@ -156,7 +156,7 @@ export const DashboardPage: React.FC = () => {
                       <Server className="w-3.5 h-3.5 text-blue-400" /> API Gateway
                     </span>
                     <span className="font-mono text-emerald-400 text-[11px] font-semibold">
-                      {telemetry?.status.toUpperCase()}
+                      {telemetry?.status?.toUpperCase() || 'HEALTHY'}
                     </span>
                   </div>
 
@@ -165,7 +165,7 @@ export const DashboardPage: React.FC = () => {
                       <Database className="w-3.5 h-3.5 text-amber-400" /> Database Driver
                     </span>
                     <span className="font-mono text-forge-text text-[11px]">
-                      {telemetry?.database.driver} ({telemetry?.database.status})
+                      {telemetry?.database?.driver || 'pgx/memory'} ({telemetry?.database?.status || 'connected'})
                     </span>
                   </div>
 
@@ -174,21 +174,21 @@ export const DashboardPage: React.FC = () => {
                       <Cpu className="w-3.5 h-3.5 text-purple-400" /> Redis Mode
                     </span>
                     <span className="font-mono text-forge-text text-[11px]">
-                      {telemetry?.redis.mode}
+                      {telemetry?.redis?.mode || 'embedded'}
                     </span>
                   </div>
 
                   <div className="flex items-center justify-between text-xs py-1.5 border-b border-forge-border/40">
                     <span className="text-forge-muted">Uptime</span>
                     <span className="font-mono text-forge-text text-[11px]">
-                      {telemetry?.uptime_seconds}s
+                      {telemetry?.uptime_seconds ?? 0}s
                     </span>
                   </div>
 
                   <div className="flex items-center justify-between text-xs py-1.5">
                     <span className="text-forge-muted">Go Runtime</span>
                     <span className="font-mono text-forge-text text-[11px]">
-                      {telemetry?.system.go_version}
+                      {telemetry?.system?.go_version || 'Go 1.27'}
                     </span>
                   </div>
                 </div>

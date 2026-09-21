@@ -4,6 +4,7 @@ import { Header } from '../common/Header';
 import { Sidebar } from '../common/Sidebar';
 import { CommandPalette } from '../common/CommandPalette';
 import { ForgeAIDrawer } from '../ai/ForgeAIDrawer';
+import { ErrorBoundary } from '../common/ErrorBoundary';
 
 export const AppLayout: React.FC = () => {
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
@@ -33,7 +34,9 @@ export const AppLayout: React.FC = () => {
 
         <main className="flex-1 overflow-y-auto p-6 bg-gradient-to-b from-forge-bg to-forge-surface/30">
           <div className="max-w-7xl mx-auto">
-            <Outlet />
+            <ErrorBoundary>
+              <Outlet />
+            </ErrorBoundary>
           </div>
         </main>
       </div>

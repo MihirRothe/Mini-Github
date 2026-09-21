@@ -18,7 +18,8 @@ export const UserProfilePage: React.FC = () => {
   const { username } = useParams<{ username: string }>();
   const { user: currentUser } = useAuth();
 
-  const isOwnProfile = currentUser && currentUser.username.toLowerCase() === username?.toLowerCase();
+  const isOwnProfile =
+    Boolean(currentUser?.username && username && currentUser.username.toLowerCase() === username.toLowerCase());
 
   const {
     data: profile,
