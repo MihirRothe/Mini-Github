@@ -30,6 +30,19 @@ type Config struct {
 	GitMaxDiffBytes         int64
 	LogLevel                string
 	LogFormat               string
+
+	// ForgeAI Settings
+	AIProvider              string
+	GeminiAPIKey            string
+	GeminiModel             string
+	OpenAIAPIKey            string
+	OpenAIModel             string
+	AnthropicAPIKey         string
+	AnthropicModel          string
+	OllamaBaseURL           string
+	OllamaModel             string
+	AIMaxTokens             int
+	AITimeoutSeconds        int
 }
 
 func Load() *Config {
@@ -56,6 +69,19 @@ func Load() *Config {
 		GitMaxDiffBytes:       getEnvAsInt64("GIT_MAX_DIFF_BYTES", 5242880), // 5MB
 		LogLevel:              strings.ToLower(getEnv("LOG_LEVEL", "info")),
 		LogFormat:             strings.ToLower(getEnv("LOG_FORMAT", "json")),
+
+		// ForgeAI Defaults
+		AIProvider:            strings.ToLower(getEnv("FORGEHUB_AI_PROVIDER", "auto")),
+		GeminiAPIKey:          getEnv("GEMINI_API_KEY", ""),
+		GeminiModel:           getEnv("GEMINI_MODEL", "gemini-1.5-flash"),
+		OpenAIAPIKey:          getEnv("OPENAI_API_KEY", ""),
+		OpenAIModel:           getEnv("OPENAI_MODEL", "gpt-4o-mini"),
+		AnthropicAPIKey:       getEnv("ANTHROPIC_API_KEY", ""),
+		AnthropicModel:        getEnv("ANTHROPIC_MODEL", "claude-3-5-sonnet-20241022"),
+		OllamaBaseURL:         getEnv("OLLAMA_BASE_URL", ""),
+		OllamaModel:           getEnv("OLLAMA_MODEL", "codellama"),
+		AIMaxTokens:           getEnvAsInt("AI_MAX_TOKENS", 4096),
+		AITimeoutSeconds:      getEnvAsInt("AI_TIMEOUT_SECONDS", 60),
 	}
 }
 

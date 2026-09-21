@@ -12,15 +12,18 @@ import {
   LogOut,
   ChevronDown,
   Building2,
-  Plus
+  Plus,
+  Sparkles,
+  Shield
 } from 'lucide-react';
 import { TelemetryResponse } from '../../types';
 
 interface HeaderProps {
   onOpenCommandPalette: () => void;
+  onOpenAI?: () => void;
 }
 
-export const Header: React.FC<HeaderProps> = ({ onOpenCommandPalette }) => {
+export const Header: React.FC<HeaderProps> = ({ onOpenCommandPalette, onOpenAI }) => {
   const { user, isAuthenticated, logout } = useAuth();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -119,6 +122,16 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCommandPalette }) => {
           </span>
         </Link>
 
+        {/* ForgeAI Assistant Trigger */}
+        <button
+          onClick={onOpenAI}
+          className="flex items-center space-x-1.5 px-2.5 py-1 rounded-full bg-purple-500/10 border border-purple-500/20 hover:border-purple-500/40 text-purple-400 hover:text-purple-300 text-xs transition-colors shadow-sm"
+          title="Open ForgeAI Assistant (Ctrl+Shift+I)"
+        >
+          <Sparkles className="w-3.5 h-3.5 text-purple-400" />
+          <span className="font-semibold">ForgeAI</span>
+        </button>
+
         {/* New Organization Quick Action */}
         {isAuthenticated && (
           <Link
@@ -162,13 +175,23 @@ export const Header: React.FC<HeaderProps> = ({ onOpenCommandPalette }) => {
                   <div className="text-[11px] text-forge-muted">Signed in as</div>
                   <div className="font-semibold text-white truncate">@{user.username}</div>
                   {user.is_admin && (
-                    <span className="inline-block mt-1 px-1.5 py-0.2 rounded bg-blue-500/10 text-blue-400 border border-blue-500/20 text-[10px] font-mono">
+                    <span className="inline-block mt-1 px-1.5 py-0.2 rounded bg-rose-500/10 text-rose-400 border border-rose-500/20 text-[10px] font-mono">
                       Administrator
                     </span>
                   )}
                 </div>
 
                 <div className="py-1">
+                  {user.is_admin && (
+                    <Link
+                      to="/admin"
+                      onClick={() => setIsDropdownOpen(false)}
+                      className="flex items-center space-x-2 px-4 py-2 hover:bg-rose-500/10 text-rose-300 transition-colors font-semibold"
+                    >
+                      <Shield className="w-3.5 h-3.5 text-rose-400" />
+                      <span>Admin Dashboard</span>
+                    </Link>
+                  )}
                   <Link
                     to={`/${user.username}`}
                     onClick={() => setIsDropdownOpen(false)}

@@ -6,9 +6,9 @@ ForgeHub is an independent, production-grade, self-hostable developer collaborat
 
 ## Current Milestone
 
-* **Current Phase**: **PHASE 10 — ForgeAI Assistant** (Up Next)
-* **Completed Milestones**: Phase 1 (Foundation), Phase 2 (Authentication & User Management), Phase 3 (Organizations, Teams & RBAC), Phase 4 (Git Storage & Smart HTTP Engine), Phase 5 (Issues & Collaboration), Phase 6 (Pull Requests & Code Review), Phase 7 (CI/CD System & Container Runners), Phase 8 (Webhooks & Automation), Phase 9 (Global Search & Code Navigation)
-* **Target**: Provider abstraction (Gemini / Anthropic / OpenAI / Ollama), code explanation, PR review assistant, test generator, and interactive chat drawer.
+* **Current Phase**: **PHASE 12 — Production Hardening** (Up Next)
+* **Completed Milestones**: Phase 1 (Foundation), Phase 2 (Authentication & User Management), Phase 3 (Organizations, Teams & RBAC), Phase 4 (Git Storage & Smart HTTP Engine), Phase 5 (Issues & Collaboration), Phase 6 (Pull Requests & Code Review), Phase 7 (CI/CD System & Container Runners), Phase 8 (Webhooks & Automation), Phase 9 (Global Search & Code Navigation), Phase 10 (ForgeAI Assistant), Phase 11 (Admin Dashboard & Observability)
+* **Target**: Security audit, performance benchmarks, backup and restore tooling, and production container deployment.
 
 ---
 
@@ -25,9 +25,9 @@ ForgeHub is an independent, production-grade, self-hostable developer collaborat
 | **Phase 7** | **CI/CD System & Container Runners** (Workflow parser, job queue, Docker runner, log streaming) | 🟢 **Completed** | YAML parser, step execution, failing step skipping, live logs |
 | **Phase 8** | **Webhooks & Automation** (Event dispatcher, signed payloads, delivery retries) | 🟢 **Completed** | HMAC-SHA256 signer, ping dispatch, delivery recording & retries |
 | **Phase 9** | **Global Search** (Full-text repository, issue, PR, and code search) | 🟢 **Completed** | Search qualifiers, Git code grep, Command Palette, faceted UI |
-| **Phase 10** | **ForgeAI** (Provider abstraction, code explanation, PR review, test generation) | 🟡 **In Progress** | AI prompt security, response validation tests |
-| **Phase 11** | **Admin Dashboard & Observability** (Admin metrics, audit logs, user management, metrics) | ⚪ Planned | Audit logging & metrics endpoint tests |
-| **Phase 12** | **Production Hardening** (Security audit, performance testing, backup/restore, hardening) | ⚪ Planned | Security & benchmark reports |
+| **Phase 10** | **ForgeAI** (Provider abstraction, code explanation, PR review, test generation) | 🟢 **Completed** | Provider tests, delimiter injection defense, local heuristic engine |
+| **Phase 11** | **Admin Dashboard & Observability** (Admin metrics, audit logs, user management, metrics) | 🟢 **Completed** | Telemetry gauges, audit log stream, user promotion/suspension tests |
+| **Phase 12** | **Production Hardening** (Security audit, performance testing, backup/restore, hardening) | 🟡 **In Progress** | Security & benchmark reports |
 
 ---
 

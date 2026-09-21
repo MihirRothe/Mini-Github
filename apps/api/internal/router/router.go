@@ -10,6 +10,9 @@ import (
 	"forgehub/apps/api/internal/errors"
 	"forgehub/apps/api/internal/git"
 	"forgehub/apps/api/internal/middleware"
+	"forgehub/apps/api/internal/modules/admin"
+	"forgehub/apps/api/internal/modules/ai"
+	"forgehub/apps/api/internal/modules/ai/providers"
 	authModule "forgehub/apps/api/internal/modules/auth"
 	"forgehub/apps/api/internal/modules/ci"
 	"forgehub/apps/api/internal/modules/health"
@@ -94,6 +97,16 @@ func New(opts RouterOptions) *chi.Mux {
 	searchSvc := search.NewService(searchStore, gitReader)
 	searchHandler := search.NewHandler(searchSvc)
 
+	// ForgeAI Assistant (Phase 10)
+	aiManager := providers.NewManager(opts.Config)
+	aiSvc := ai.NewService(aiManager, reposSvc, pullsSvc)
+	aiHandler := ai.NewHandler(aiSvc)
+
+	// Admin Dashboard & Observability (Phase 11)
+	adminRepo := admin.NewRepository(opts.DB, authRepo)
+	adminSvc := admin.NewService(adminRepo)
+	adminHandler := admin.NewHandler(adminSvc)
+
 	// Authentication Context Middleware
 	r.Use(middleware.Authenticate(authSvc, opts.Config.SessionCookieName))
 
@@ -140,6 +153,27 @@ func New(opts RouterOptions) *chi.Mux {
 		// Global Search (Phase 9)
 		v1.Get("/search", searchHandler.Search)
 		v1.Get("/search/quick", searchHandler.QuickSearch)
+
+		// ForgeAI Assistant (Phase 10)
+		v1.Route("/ai", func(aiRouter chi.Router) {
+			aiRouter.Post("/explain", aiHandler.Explain)
+			aiRouter.Post("/review", aiHandler.Review)
+			aiRouter.Post("/generate-tests", aiHandler.GenerateTests)
+			aiRouter.Post("/chat", aiHandler.Chat)
+			aiRouter.Get("/providers", aiHandler.Providers)
+		})
+
+		// Admin & Observability (Phase 11)
+		v1.Route("/admin", func(adminRouter chi.Router) {
+			adminRouter.Use(middleware.RequireAuth)
+			adminRouter.Get("/stats", adminHandler.GetStats)
+			adminRouter.Get("/audit-logs", adminHandler.ListAuditLogs)
+			adminRouter.Post("/audit-logs", adminHandler.CreateAuditLog)
+			adminRouter.Get("/users", adminHandler.ListUsers)
+			adminRouter.Patch("/users/{id}", adminHandler.UpdateUserStatus)
+			adminRouter.Get("/orgs", adminHandler.ListOrganizations)
+			adminRouter.Get("/repos", adminHandler.ListRepositories)
+		})
 
 		// Auth Endpoints
 		v1.Route("/auth", func(authRouter chi.Router) {
@@ -267,6 +301,11 @@ func New(opts RouterOptions) *chi.Mux {
 			repoRouter.Get("/{owner}/{repo}/settings/hooks/{hook_id}/deliveries", webhooksHandler.ListDeliveries)
 			repoRouter.Get("/{owner}/{repo}/settings/hooks/{hook_id}/deliveries/{delivery_id}", webhooksHandler.GetDelivery)
 			repoRouter.With(middleware.RequireAuth).Post("/{owner}/{repo}/settings/hooks/{hook_id}/deliveries/{delivery_id}/redeliver", webhooksHandler.Redeliver)
+
+			// ForgeAI PR & Blob Integrations (Phase 10)
+			repoRouter.Post("/{owner}/{repo}/pulls/{number}/ai-review", aiHandler.ReviewPullRequest)
+			repoRouter.Post("/{owner}/{repo}/ai/explain-blob", aiHandler.ExplainBlob)
+			repoRouter.Post("/{owner}/{repo}/ai/generate-blob-tests", aiHandler.GenerateBlobTests)
 		})
 	})
 

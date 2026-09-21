@@ -28,6 +28,7 @@ import { PipelineRunDetailPage } from './pages/actions/PipelineRunDetailPage';
 import { WebhooksListPage } from './pages/settings/WebhooksListPage';
 import { WebhookEditPage } from './pages/settings/WebhookEditPage';
 import { SearchPage } from './pages/SearchPage';
+import { AdminDashboardPage } from './pages/admin/AdminDashboardPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 
 const queryClient = new QueryClient({
@@ -51,6 +52,7 @@ export const App: React.FC = () => {
               <Route path="/explore" element={<ExplorePage />} />
               <Route path="/search" element={<SearchPage />} />
               <Route path="/status" element={<SystemStatusPage />} />
+              <Route path="/admin" element={<AdminDashboardPage />} />
               <Route path="/login" element={<LoginPage />} />
               <Route path="/register" element={<RegisterPage />} />
               <Route path="/settings/profile" element={<ProfileSettingsPage />} />

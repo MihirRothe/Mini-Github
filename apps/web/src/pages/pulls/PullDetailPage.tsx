@@ -18,8 +18,10 @@ import {
   Check,
   Send,
   Trash2,
-  ShieldAlert
+  ShieldAlert,
+  Sparkles
 } from 'lucide-react';
+import { AIReviewModal } from '../../components/ai/AIReviewModal';
 
 export const PullDetailPage: React.FC = () => {
   const { owner, repo: repoSlug, number: numberStr } = useParams<{
@@ -32,6 +34,7 @@ export const PullDetailPage: React.FC = () => {
   const [repo, setRepo] = useState<Repository | null>(null);
   const [pr, setPR] = useState<PullRequestDetail | null>(null);
   const [activeTab, setActiveTab] = useState<'conversation' | 'commits' | 'files'>('conversation');
+  const [aiReviewOpen, setAiReviewOpen] = useState(false);
 
   // New Comment state
   const [commentBody, setCommentBody] = useState('');
@@ -284,6 +287,16 @@ export const PullDetailPage: React.FC = () => {
             </h1>
 
             <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setAiReviewOpen(true)}
+                className="px-3 py-1.5 rounded-lg bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/30 text-purple-300 hover:text-purple-200 text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-sm"
+                title="Run automated security & correctness review with ForgeAI"
+              >
+                <Sparkles className="w-3.5 h-3.5 text-purple-400" />
+                <span>ForgeAI Review</span>
+              </button>
+
               {isOpen && currentUser && (
                 <button
                   type="button"
@@ -795,6 +808,19 @@ export const PullDetailPage: React.FC = () => {
           </div>
         )}
       </div>
+
+      {owner && repoSlug && pr && (
+        <AIReviewModal
+          isOpen={aiReviewOpen}
+          onClose={() => setAiReviewOpen(false)}
+          owner={owner}
+          repo={repoSlug}
+          pullNumber={pr.number}
+          onReviewPosted={() => {
+            fetchPR();
+          }}
+        />
+      )}
     </div>
   );
 };

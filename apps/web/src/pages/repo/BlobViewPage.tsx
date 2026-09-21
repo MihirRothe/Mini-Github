@@ -6,8 +6,11 @@ import {
   Check,
   ArrowLeft,
   Loader2,
-  AlertCircle
+  AlertCircle,
+  Sparkles,
+  TestTube
 } from 'lucide-react';
+import { AIExplainModal } from '../../components/ai/AIExplainModal';
 
 interface BlobInfo {
   path: string;
@@ -29,6 +32,8 @@ export const BlobViewPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [aiModalOpen, setAiModalOpen] = useState(false);
+  const [aiModalMode, setAiModalMode] = useState<'explain' | 'tests'>('explain');
 
   useEffect(() => {
     if (!owner || !repoSlug || !urlRef || !filePath) return;
@@ -106,6 +111,34 @@ export const BlobViewPage: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-2">
+            {!blob.is_binary && (
+              <>
+                <button
+                  onClick={() => {
+                    setAiModalMode('explain');
+                    setAiModalOpen(true);
+                  }}
+                  className="px-2.5 py-1 rounded bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/30 text-xs text-purple-300 transition-colors flex items-center gap-1.5"
+                  title="Explain code structure with ForgeAI"
+                >
+                  <Sparkles className="w-3.5 h-3.5 text-purple-400" />
+                  <span>Explain Code</span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    setAiModalMode('tests');
+                    setAiModalOpen(true);
+                  }}
+                  className="px-2.5 py-1 rounded bg-forge-bg hover:bg-forge-border border border-forge-border text-xs text-forge-text hover:text-white transition-colors flex items-center gap-1.5"
+                  title="Generate unit test suite with ForgeAI"
+                >
+                  <TestTube className="w-3.5 h-3.5 text-blue-400" />
+                  <span>Generate Tests</span>
+                </button>
+              </>
+            )}
+
             <button
               onClick={handleCopy}
               className="px-2.5 py-1 rounded bg-forge-bg hover:bg-forge-border border border-forge-border text-xs text-forge-text transition-colors flex items-center gap-1"
@@ -148,6 +181,16 @@ export const BlobViewPage: React.FC = () => {
           </div>
         )}
       </div>
+
+      {blob && !blob.is_binary && (
+        <AIExplainModal
+          isOpen={aiModalOpen}
+          onClose={() => setAiModalOpen(false)}
+          fileName={blob.name}
+          code={blob.content}
+          initialMode={aiModalMode}
+        />
+      )}
     </div>
   );
 };
